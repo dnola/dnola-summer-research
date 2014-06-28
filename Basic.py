@@ -481,6 +481,9 @@ def analyze_dataset(clips, test_data, early=False):
 
     TemporaryMetrics.AUC_Mappings.append([len(clips)+FINAL_VERIFY_SIZE, roc_auc])
 
+
+
+
     return final_predict
 
 
@@ -499,14 +502,20 @@ def procc(result_q):
 
     for s in SUBJECTS[:]:
         print "Starting: "+s
-        test = cPickle.load(open(s+'_TEST.pkl', 'rb'))
-        train = cPickle.load(open(s+'.pkl', 'rb'))
-        first_predictions+=run_analysis(train, test)
+        test = cPickle.load(open("SummerResearchData/"+s+'_TEST.pkl', 'rb'))
+        train = cPickle.load(open("SummerResearchData/"+s+'.pkl', 'rb'))
+        res = run_analysis(train, test)
+        first_predictions+= res
 
 
         redo.append((train, test, s))
         #pickle_dataset(s)
         print "Done"
+
+        cPickle.dump(res, open(s+'_RESULTS.pkl', 'wb'))
+
+
+
 
     score = 0
     count = 0
@@ -594,7 +603,7 @@ if __name__ == '__main__':
     FINAL_VERIFY_PERCENT= .05
     #algorithms = ModelList.models_kitchen_sink
     algorithms = ModelList.models_best
-    #algorithms =  ModelList.models_small
+    algorithms =  ModelList.models_small
 
     multi_proc_mode = False
 
