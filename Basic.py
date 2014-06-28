@@ -295,10 +295,11 @@ def train_slave(clips):
 
             try:
                 clf = result.get(10)
+                if clf.score(cv, seizure_cv) < .55:
+                    raise mp.TimeoutError
                 models.append(clf)
 
-                if clf.score(cv, seizure_cv) < .7:
-                    raise mp.TimeoutError
+
             ###
                 predict = clf.predict(cv)
 
@@ -577,9 +578,9 @@ def run_single():
 if __name__ == '__main__':
 
     SUBJECTS = ['Dog_1','Dog_2','Dog_3','Dog_4','Patient_1','Patient_2','Patient_3','Patient_4','Patient_5','Patient_6','Patient_7','Patient_8']
-    SUBJECTS = SUBJECTS[4:]
+    SUBJECTS = SUBJECTS[:]
 
-    restart = True
+    restart = False
 
     if restart == False:
         f = open('finalSubmit.csv', 'w')
@@ -591,8 +592,8 @@ if __name__ == '__main__':
         f.close()
 
     FINAL_VERIFY_PERCENT= .05
-    algorithms = ModelList.models_kitchen_sink
-    #algorithms = ModelList.models_best
+    #algorithms = ModelList.models_kitchen_sink
+    algorithms = ModelList.models_best
     #algorithms =  ModelList.models_small
 
     multi_proc_mode = False
