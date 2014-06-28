@@ -592,7 +592,7 @@ def run_multi():
 
 def run_single():
     all_predictions = procc( Queue())
-    append_predictions(all_predictions)
+    #append_predictions(all_predictions)
 
 
 if __name__ == '__main__':
