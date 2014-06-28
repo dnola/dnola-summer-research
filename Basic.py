@@ -209,6 +209,7 @@ def append_predictions(preds):
     print
     for line in f.readlines()[1:]:
         towrite = line[:-1] + str(round(preds.next(),5)) + "\n"
+        #print towrite
         out.write(towrite)
 
 
@@ -498,6 +499,7 @@ def analyze_dataset(clips, test_data, early=False):
 def procc(result_q):
     first_predictions = []
     all_predictions=[]
+    early_mode = False
 
     redo = []
 
@@ -530,26 +532,31 @@ def procc(result_q):
 
     TemporaryMetrics.print_scores()
 
-    TemporaryMetrics.reset()
+
+
+    if early_mode:
+
+        TemporaryMetrics.reset()
 
 
 
-    for (train, test, s) in redo:
-        print "\n\n\nStarting EARLY: " + s
-        all_predictions+=run_analysis(train, test, early=True)
+        for (train, test, s) in redo:
+            print "\n\n\nStarting EARLY: " + s
+            (res, names) = run_analysis(train, test, early=True)
+            all_predictions+=res
 
-    TemporaryMetrics.print_scores()
+        TemporaryMetrics.print_scores()
 
-    for x in TemporaryMetrics.AUC_Mappings:
-        score += x[0] * x[1]
-        count += x[0]
+        for x in TemporaryMetrics.AUC_Mappings:
+            score += x[0] * x[1]
+            count += x[0]
 
-    final_e =  score/float(count)
-    print final_e
+        final_e =  score/float(count)
+        print final_e
 
-    summed = (final+final_e)/2.0
+        summed = (final+final_e)/2.0
 
-    print "Summed score: ", summed
+        print "Summed score: ", summed
 
     result_q.put(summed)
     return all_predictions
@@ -589,7 +596,7 @@ def run_single():
 if __name__ == '__main__':
 
     SUBJECTS = ['Dog_1','Dog_2','Dog_3','Dog_4','Patient_1','Patient_2','Patient_3','Patient_4','Patient_5','Patient_6','Patient_7','Patient_8']
-    SUBJECTS = SUBJECTS[:]
+    SUBJECTS = SUBJECTS[1:2]
 
     restart = False
 
