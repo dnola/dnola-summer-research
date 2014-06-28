@@ -165,11 +165,13 @@ class EEGSegment:
 
 def run_analysis(clips, test_data, early=False):
     result = analyze_dataset(clips, test_data, early)
+    names = []
     iter = 0
     final_text = ""
     final_text_single = ""
     for t in test_data:
         #print t.name, result[iter]
+        names.append(t.name)
         final_text+= t.name + ","+str(round(result[iter],5)) + ",\n"
         final_text_single+= t.name + ","+str(round(result[iter],5)) + ","+str(round(result[iter],5))+"\n"
         iter+=1
@@ -190,7 +192,7 @@ def run_analysis(clips, test_data, early=False):
         f.write(final_text_single)
         f.close()
 
-    return result
+    return (result, names)
 
 def append_predictions(preds):
     print len(preds)
@@ -504,7 +506,7 @@ def procc(result_q):
         print "Starting: "+s
         test = cPickle.load(open("SummerResearchData/"+s+'_TEST.pkl', 'rb'))
         train = cPickle.load(open("SummerResearchData/"+s+'.pkl', 'rb'))
-        res = run_analysis(train, test)
+        (res, names) = run_analysis(train, test)
         first_predictions+= res
 
 
@@ -512,7 +514,7 @@ def procc(result_q):
         #pickle_dataset(s)
         print "Done"
 
-        cPickle.dump(res, open(s+'_RESULTS.pkl', 'wb'))
+        cPickle.dump(zip(names,res), open(s+'_RESULTS.pkl', 'wb'))
 
 
 
