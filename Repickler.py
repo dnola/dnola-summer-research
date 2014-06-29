@@ -46,9 +46,12 @@ def combine_pickles():
             seg.name = f.name
             seg.latency = f.latency
             seg.seizure = f.seizure
-            seg.features = f.features
-            for k in second.features.keys():
-                seg[k] = second.features[k]
+            if hasattr(first, 'features'):
+                seg.features = f.features
+            if hasattr(second, 'features'):
+                for k in second.features.keys():
+                    seg.features[k] = second.features[k]
+
             final_pkl.append(seg)
         cPickle.dump(s, open(first[first.rfind('/')+1:], 'wb'))
 
@@ -94,6 +97,7 @@ def pickle_dataset(subject, location):
         s.data = matfile['data']
         s.frequency = matfile['freq']
         s.name = f[f.rindex('/')+1:]
+        s.features={}
 
         print f
         if 'test' in f:
