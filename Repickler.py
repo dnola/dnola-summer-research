@@ -11,7 +11,7 @@ SUBJECTS = ['Dog_1','Dog_2','Dog_3','Dog_4','Patient_1','Patient_2','Patient_3',
 #SUBJECTS = ['Dog_1']
 
 
-
+"""
 def add_total_channel_variance(subject, location):
     clips = [];
     test_data = [];
@@ -25,8 +25,32 @@ def add_total_channel_variance(subject, location):
             print s.name
             print f.next()
             print
+"""
+
+def add_total_channel_variance(subject, location):
+    clips = [];
+    test_data = [];
+    location = location+subject+'/*.mat'
+    print location
+    f = iter(glob.glob(location))
+    for fpkl in glob.glob(subject+'*.pkl'):
+        print "loaded: ", fpkl
+        pkl = cPickle.load(open(fpkl, 'rb'))
+        for s in pkl:
+            print s.name
+            mat = scipy.io.loadmat(f.next())
+            s.data = mat['data']
+            s.features['channel_variances'] = []
+            for d in s.data:
+                x = np.var(d)
+                s.features['channel_variances'].append(x)
+
+            print s.features
+            cPickle.dump(s, open(fpkl, 'wb'))
 
 
+#new sig : just 1 and 2 levels, do first half, second half, and deltas
+#new varsplit: 4 segments, 3 deltas
 
 
 def pickle_dataset(subject, location):

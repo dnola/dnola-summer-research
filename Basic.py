@@ -93,10 +93,10 @@ class TemporaryMetrics:
 
 class EEGSegment:
     features = {
-            'channel_variances': [],
-            'channel_1sig_times_exceeded': [],
-            'channel_2sig_times_exceeded': [],
-            'channel_3sig_times_exceeded': [],
+            # 'channel_variances': [],
+            # 'channel_1sig_times_exceeded': [],
+            # 'channel_2sig_times_exceeded': [],
+            # 'channel_3sig_times_exceeded': [],
         }
 
     def __init__(self):
@@ -106,10 +106,10 @@ class EEGSegment:
         self.seizure = False
         self.frequency = 0
         self.features = {
-            'channel_variances': [],
-            'channel_1sig_times_exceeded': [],
-            'channel_2sig_times_exceeded': [],
-            'channel_3sig_times_exceeded': [],
+            # 'channel_variances': [],
+            # 'channel_1sig_times_exceeded': [],
+            # 'channel_2sig_times_exceeded': [],
+            # 'channel_3sig_times_exceeded': [],
         }
 
 
