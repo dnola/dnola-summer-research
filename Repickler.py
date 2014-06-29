@@ -57,12 +57,12 @@ def combine_pickles():
 
 
 def add_total_channel_variance(subject, location):
-    clips = [];
-    test_data = [];
+
     location = location+subject+'/*.mat'
     print location
     f = iter(glob.glob(location))
     for fpkl in glob.glob(subject+'*.pkl'):
+        clips = [];
         print "loaded: ", fpkl
         pkl = cPickle.load(open(fpkl, 'rb'))
         for s in pkl:
@@ -75,7 +75,8 @@ def add_total_channel_variance(subject, location):
                 s.features['channel_variances'].append(x)
 
             print s.features
-            cPickle.dump(s, open(fpkl, 'wb'))
+            clips.append(s)
+        cPickle.dump(clips, open(fpkl, 'wb'))
 
 
 #new sig : just 1 and 2 levels, do first half, second half, and deltas
