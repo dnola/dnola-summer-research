@@ -46,11 +46,14 @@ def combine_pickles():
             seg.name = f.name
             seg.latency = f.latency
             seg.seizure = f.seizure
-            if hasattr(first, 'features'):
+            seg.features = {}
+            try:
                 seg.features = f.features
-            if hasattr(second, 'features'):
+
                 for k in second.features.keys():
                     seg.features[k] = second.features[k]
+            except:
+                print "Failed to set features"
 
             final_pkl.append(seg)
             print seg.features
