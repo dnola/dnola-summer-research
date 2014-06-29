@@ -25,7 +25,7 @@ def pickle_dataset(subject, location):
         s.frequency = matfile['freq']
         s.name = f[f.rindex('/')+1:]
 
-
+        print f
         if 'test' in f:
             #s.calculate_features()
             test_data.append(s)
