@@ -53,6 +53,7 @@ def combine_pickles():
                     seg.features[k] = second.features[k]
 
             final_pkl.append(seg)
+            print seg.features
         cPickle.dump(final_pkl, open(first[first.rfind('/')+1:], 'wb'))
 
 
