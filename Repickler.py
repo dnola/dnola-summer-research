@@ -33,11 +33,14 @@ def combine_pickles():
     for first in glob.glob('First/*.pkl'):
 
         second = second_iter.next()
-        s = iter(second)
-        for f in first:
+
+        f_pkl = cPickle.load(open(first, 'rb'))
+        s_pkl = cPickle.load(open(second, 'rb'))
+        s = iter(s_pkl)
+        for f in f_pkl:
             s = s.next()
-            print "first:", f
-            print "second", s
+            print "first:", f.name
+            print "second", s.name
             seg = EEGSegment()
             seg.frequency = f.frequency
             seg.name = f.name
