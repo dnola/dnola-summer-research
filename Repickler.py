@@ -87,7 +87,7 @@ def channel_sigmas(pkl, mat):
         pkl.features[siglevel] = []
         cursig+=1
         iter = 0.0
-        for d in mat.data:
+        for d in mat['data']:
             stddev = np.std(d)
             mean = np.mean(d)
             prior = d[0]
