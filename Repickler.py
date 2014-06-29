@@ -100,7 +100,7 @@ def add_channel_variance_change(subject, location):
             s.features['channel_variance_delta'] = []
             for d in s.data:
                 size = len(d)/4 + 1
-                for i in range(10):
+                for i in range(4):
                     chunk = d[i*size : (i+1)*size]
                     toadd.append(np.var(chunk))
                     if i!=0:
