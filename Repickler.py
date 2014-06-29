@@ -96,8 +96,8 @@ def add_channel_variance_change(subject, location):
             toadd = []
             toadd_delta = []
 
-            s.features['channel_variance_quarter'] = []
-            s.features['channel_variance_delta'] = []
+            s.features['channel_variances_quarter'] = []
+            s.features['channel_variances_delta'] = []
             for d in s.data:
                 size = len(d)/4 + 1
                 for i in range(4):
