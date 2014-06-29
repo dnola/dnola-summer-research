@@ -613,9 +613,9 @@ if __name__ == '__main__':
         f.close()
 
     FINAL_VERIFY_PERCENT= .05
-    #algorithms = ModelList.models_kitchen_sink
-    algorithms = ModelList.models_best
-    algorithms =  ModelList.models_small
+    algorithms = ModelList.models_kitchen_sink
+    #algorithms = ModelList.models_best
+    #algorithms =  ModelList.models_small
 
     multi_proc_mode = False
 

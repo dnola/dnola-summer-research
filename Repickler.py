@@ -11,11 +11,11 @@ SUBJECTS = ['Dog_1','Dog_2','Dog_3','Dog_4','Patient_1','Patient_2','Patient_3',
 #SUBJECTS = ['Dog_1']
 
 
-def pickle_dataset(subject):
+def pickle_dataset(subject, location):
     clips = [];
     test_data = [];
-    print '/Users/davidnola/Machine_Learning_Research/Data/'+ subject+'/*.mat'
-    for f in glob.glob('/Users/davidnola/Machine_Learning_Research/Data/'+ subject+'/*.mat'):
+    location = location+subject+'/*.mat'
+    for f in glob.glob(location):
         #sub_file = open(f , 'r')
         #print f
 
@@ -27,7 +27,7 @@ def pickle_dataset(subject):
 
 
         if 'test' in f:
-            s.calculate_features()
+            #s.calculate_features()
             test_data.append(s)
             continue
 
@@ -41,7 +41,7 @@ def pickle_dataset(subject):
 
         #s.segment_info()
 
-        s.calculate_features()
+        #s.calculate_features()
         clips.append(s)
     cPickle.dump(clips, open(subject+'.pkl', 'wb'))
     cPickle.dump(test_data, open(subject+'_TEST.pkl', 'wb'))
