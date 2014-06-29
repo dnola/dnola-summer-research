@@ -27,6 +27,26 @@ def add_total_channel_variance(subject, location):
             print
 """
 
+def combine_pickles():
+    second_iter = iter(glob.glob('Second/*.mat'))
+    final_pkl = []
+    for first in glob.glob('First/*.mat'):
+        second = second_iter.next()
+        for (f, s) in (first, second):
+            print "first:", f
+            print "second", s
+            seg = EEGSegment()
+            seg.frequency = f.frequency
+            seg.name = f.name
+            seg.latency = f.latency
+            seg.seizure = f.seizure
+            seg.features = f.features
+            for k in second.features.keys():
+                seg[k] = second.features[k]
+            final_pkl.append(seg)
+        cPickle.dump(s, open(first[first.rfind('/')+1:], 'wb'))
+
+
 def add_total_channel_variance(subject, location):
     clips = [];
     test_data = [];
