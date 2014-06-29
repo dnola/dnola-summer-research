@@ -79,6 +79,40 @@ def add_total_channel_variance(subject, location):
             clips.append(s)
         cPickle.dump(clips, open(fpkl, 'wb'))
 
+def add_channel_variance_change(subject, location):
+
+    location = location+subject+'/*.mat'
+    print location
+    f = iter(glob.glob(location))
+    for fpkl in glob.glob(subject+'*.pkl'):
+        clips = [];
+        print "loaded: ", fpkl
+        pkl = cPickle.load(open(fpkl, 'rb'))
+        for s in pkl:
+            print s.name
+            mat = scipy.io.loadmat(f.next())
+            s.data = mat['data']
+
+            toadd = []
+            toadd_delta = []
+
+            s.features['channel_variance_quarter'] = []
+            s.features['channel_variance_delta'] = []
+            for d in s.data:
+                size = len(d)/4 + 1
+                for i in range(10):
+                    chunk = d[i*size : (i+1)*size]
+                    toadd.append(np.var(chunk))
+                    if i!=0:
+                        toadd_delta.append(toadd[-1] - toadd[-2])
+
+            s.features['channel_variances_quarter'] = toadd
+            s.features['channel_variances_delta'] = toadd_delta
+
+            print s.features
+            s.data=[]
+            clips.append(s)
+        cPickle.dump(clips, open(fpkl, 'wb'))
 
 #new sig : just 1 and 2 levels, do first half, second half, and deltas
 #new varsplit: 4 segments, 3 deltas
