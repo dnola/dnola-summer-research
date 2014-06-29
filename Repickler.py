@@ -50,9 +50,9 @@ def combine_pickles():
             try:
                 seg.features = f.features
 
-                for k in second.features.keys():
+                for k in s.features.keys():
                     print k
-                    seg.features[k] = second.features[k]
+                    seg.features[k] = s.features[k]
             except:
                 print "Failed to set features"
 
