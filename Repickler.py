@@ -61,6 +61,60 @@ def combine_pickles():
         cPickle.dump(final_pkl, open(first[first.rfind('/')+1:], 'wb'))
 
 
+def add_feature(subject, location, feature):
+    clips = [];
+    test_data = [];
+    location = location+subject+'/*.mat'
+    print location
+    f = iter(glob.glob(location))
+    for fpkl in glob.glob(subject+'*.pkl'):
+        print "loaded: ", fpkl
+        pkl = cPickle.load(open(fpkl, 'rb'))
+        for s in pkl:
+            print s.name
+            mat = scipy.io.loadmat(f.next())
+            s.data = mat['data']
+
+            feature(s, mat)
+
+            print s.features
+            cPickle.dump(s, open(fpkl, 'wb'))
+
+
+def channel_sigmas(pkl, mat):
+    cursig = 0
+    for siglevel in ['channel_1sig_times_exceeded_delta', 'channel_2sig_times_exceeded_delta']:
+        pkl.features[siglevel] = []
+        cursig+=1
+        iter = 0.0
+        for d in mat.data:
+            stddev = np.std(d)
+            mean = np.mean(d)
+            prior = d[0]
+            exceeded_first = 0
+            for x in d[1:len(d)/2]:
+                if prior < (cursig*stddev + mean) and x > (cursig*stddev + mean):
+                    exceeded_first+=1
+                prior = x
+
+            pkl.features[siglevel].append(exceeded_first)
+
+
+
+            prior = d[len(d)/2]
+            exceeded = 0
+            for x in d[len(d)/2+1:]:
+                if prior < (cursig*stddev + mean) and x > (cursig*stddev + mean):
+                    exceeded+=1
+                prior = x
+
+            pkl.features[siglevel].append(exceeded)
+            pkl.features[siglevel].append(exceeded - exceeded_first)
+
+    pkl.data = []
+    print pkl.features
+
+
 def add_total_channel_variance(subject, location):
 
     location = location+subject+'/*.mat'
@@ -257,8 +311,4 @@ if __name__ == '__main__':
 
     for proc in p:
         proc.join()
-
-
-
-
 
