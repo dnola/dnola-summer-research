@@ -29,16 +29,16 @@ def add_total_channel_variance(subject, location):
 
 def combine_pickles():
     second_iter = iter(glob.glob('Second/*.pkl'))
-    final_pkl = []
-    for first in glob.glob('First/*.pkl'):
 
+    for first in glob.glob('First/*.pkl'):
+        final_pkl = []
         second = second_iter.next()
 
         f_pkl = cPickle.load(open(first, 'rb'))
         s_pkl = cPickle.load(open(second, 'rb'))
-        s = iter(s_pkl)
+        sec = iter(s_pkl)
         for f in f_pkl:
-            s = s.next()
+            s = sec.next()
             print "first:", f.name
             print "second", s.name
             seg = EEGSegment()
@@ -53,7 +53,7 @@ def combine_pickles():
                     seg.features[k] = second.features[k]
 
             final_pkl.append(seg)
-        cPickle.dump(s, open(first[first.rfind('/')+1:], 'wb'))
+        cPickle.dump(final_pkl, open(first[first.rfind('/')+1:], 'wb'))
 
 
 def add_total_channel_variance(subject, location):
