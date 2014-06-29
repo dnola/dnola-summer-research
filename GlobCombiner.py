@@ -25,6 +25,6 @@ def begin():
 
     print final_text
 
-    f = open('finalSubmitSingle.csv', 'a')
+    f = open('DistributedSubmitSingle.csv', 'a')
     f.write(final_text)
     f.close()
