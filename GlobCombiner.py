@@ -15,7 +15,7 @@ def begin():
             names.append(name)
 
 
-    final_text = ""
+    final_text = "clip,seizure,early\n"
     riter = iter(results)
 
     for name in names:
