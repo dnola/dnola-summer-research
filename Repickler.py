@@ -75,6 +75,7 @@ def add_total_channel_variance(subject, location):
                 s.features['channel_variances'].append(x)
 
             print s.features
+            s.data=[]
             clips.append(s)
         cPickle.dump(clips, open(fpkl, 'wb'))
 
