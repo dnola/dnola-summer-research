@@ -11,6 +11,23 @@ SUBJECTS = ['Dog_1','Dog_2','Dog_3','Dog_4','Patient_1','Patient_2','Patient_3',
 #SUBJECTS = ['Dog_1']
 
 
+
+def add_total_channel_variance(subject, location):
+    clips = [];
+    test_data = [];
+    location = location+subject+'/*.mat'
+    print location
+    f = iter(glob.glob(location))
+    for fpkl in glob.glob('*.pkl'):
+        pkl = cPickle.load(open(fpkl, 'rb'))
+        for s in pkl:
+            print s.name
+            print f.next()
+            print
+
+
+
+
 def pickle_dataset(subject, location):
     clips = [];
     test_data = [];
