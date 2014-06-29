@@ -44,9 +44,8 @@ def pickle_dataset(subject, location):
         #s.segment_info()
 
         #s.calculate_features()
-        clips.append(s)
-    for s in clips:
         s.data = []
+        clips.append(s)
     print "cleared"
     cPickle.dump(clips, open(subject+'.pkl', 'wb'))
     cPickle.dump(test_data, open(subject+'_TEST.pkl', 'wb'))
