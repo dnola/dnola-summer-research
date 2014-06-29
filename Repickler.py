@@ -28,9 +28,10 @@ def add_total_channel_variance(subject, location):
 """
 
 def combine_pickles():
-    second_iter = iter(glob.glob('Second/*.mat'))
+    second_iter = iter(glob.glob('Second/*.pkl'))
     final_pkl = []
-    for first in glob.glob('First/*.mat'):
+    for first in glob.glob('First/*.pkl'):
+
         second = second_iter.next()
         s = iter(second)
         for f in first:
