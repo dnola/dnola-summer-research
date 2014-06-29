@@ -22,9 +22,9 @@ def begin():
         next = str(round(riter.next(), 5))
         final_text += name + "," + next + ", " + next + "\n"
 
-
+    print "Final Text:"
     print final_text
 
-    f = open('DistributedSubmitSingle.csv', 'a')
+    f = open('DistributedSubmitSingle.csv', 'w')
     f.write(final_text)
     f.close()
