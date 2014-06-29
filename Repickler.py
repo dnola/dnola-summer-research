@@ -32,7 +32,9 @@ def combine_pickles():
     final_pkl = []
     for first in glob.glob('First/*.mat'):
         second = second_iter.next()
-        for (f, s) in (first, second):
+        s = iter(second)
+        for f in first:
+            s = s.next()
             print "first:", f
             print "second", s
             seg = EEGSegment()
