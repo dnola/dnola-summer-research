@@ -30,6 +30,7 @@ def pickle_dataset(subject, location):
         print f
         if 'test' in f:
             #s.calculate_features()
+            s.data = []
             test_data.append(s)
             continue
 
