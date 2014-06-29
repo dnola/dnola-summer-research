@@ -18,7 +18,8 @@ def add_total_channel_variance(subject, location):
     location = location+subject+'/*.mat'
     print location
     f = iter(glob.glob(location))
-    for fpkl in glob.glob('*.pkl'):
+    for fpkl in glob.glob(subject+'*.pkl'):
+        print "loaded: ", fpkl
         pkl = cPickle.load(open(fpkl, 'rb'))
         for s in pkl:
             print s.name
