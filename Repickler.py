@@ -15,7 +15,9 @@ def pickle_dataset(subject, location):
     clips = [];
     test_data = [];
     location = location+subject+'/*.mat'
+    print location
     for f in glob.glob(location):
+        print f
         #sub_file = open(f , 'r')
         #print f
 
