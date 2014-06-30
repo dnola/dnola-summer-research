@@ -76,9 +76,10 @@ def add_feature(subject, location, feature):
             s.data = mat['data']
 
             feature(s, mat)
+            s.data=[]
 
             print s.features
-            cPickle.dump(s, open(fpkl, 'wb'))
+        cPickle.dump(clips, open(fpkl, 'wb'))
 
 
 def channel_sigmas(pkl, mat):

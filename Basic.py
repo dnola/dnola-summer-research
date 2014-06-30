@@ -350,6 +350,12 @@ def train_master(predictions, seizure_cv, metafeatures):
             retry = True
 
 
+    #############################################################################
+    #REMOVE TO ENABLE PARING:
+    retry = False
+    #
+
+
     if retry:
         for index in sorted(todel, reverse=True):
             print "deleting: ", metafeatures[index][0],metafeatures[index][1].__class__.__name__ , clf_layer.coef_[0][index]
@@ -628,9 +634,9 @@ if __name__ == '__main__':
         f.close()
 
     FINAL_VERIFY_PERCENT= .15
-    #algorithms = ModelList.models_kitchen_sink
+    algorithms = ModelList.models_kitchen_sink
     #algorithms = ModelList.models_best
-    algorithms =  ModelList.models_small
+    #algorithms =  ModelList.models_small
 
     multi_proc_mode = False
 
