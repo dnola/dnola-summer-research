@@ -249,6 +249,9 @@ def train_slave(clips):
     (seizure_fit, seizure_cv) = setup_validation_data(clips)
     models = []
     predictions = []
+    metafeatures = []
+
+
     print clips[0].features.keys()
     for feat in clips[0].features.keys():
 
@@ -271,26 +274,6 @@ def train_slave(clips):
             for c in clips[len(clips)/2:]:
                 cv.append(c.features[feat])
 
-            # try:
-            #     with timeout(1):
-            #         clf.fit(fit, seizure_fit)
-            #         models.append(clf)
-            #
-            #
-            #     ###
-            #         predict = clf.predict(cv)
-            #
-            #         #print "Feature: ", feat, "Model: ", a[0].__name__,  " score: ", clf.score(cv, seizure_cv)
-            #         TemporaryMetrics.model_titles.append(("Feature:\t%s ;" % feat).ljust(40)+("Model:\t%s ;" % a[0].__name__).ljust(40) + ("Score: %s " % round(clf.score(cv, seizure_cv),5)).ljust(25) + str(clf.get_params()))
-            #
-            #         #TemporaryMetrics.model_meta.append(("Feature:%s ;" % feat)+("Model:%s ;" % a[0].__name__) + str(a[1]))
-            #
-            #         TemporaryMetrics.model_short.append(("Model:%s ;" % a[0].__name__) + str(a[1]))
-            #         predictions.append(predict)
-            # except TimeoutError:
-            #     print "FITTING FAILED"
-
-
 
             pool = mp.Pool(1, maxtasksperchild=1)
             result = pool.apply_async(fit_this, (clf,fit,seizure_fit,))
@@ -303,6 +286,7 @@ def train_slave(clips):
                     raise mp.TimeoutError
                 models.append(clf)
 
+                metafeatures.append((feat, clf))
 
             ###
                 predict = clf.predict(cv)
@@ -316,15 +300,15 @@ def train_slave(clips):
 
                 predictions.append(predict)
             except mp.TimeoutError:
-                models.append(0)
-                predictions.append([0] * len(cv))
+                #models.append(0)
+                #predictions.append([0] * len(cv))
 
 
-                TemporaryMetrics.model_titles.append(("BROKEN Feature:\t%s ;" % feat).ljust(50)+("Model:\t%s ;" % a[0].__name__).ljust(40) + ("Score: BROKEN ").ljust(25) + str(str(a[1])))
+                #TemporaryMetrics.model_titles.append(("BROKEN Feature:\t%s ;" % feat).ljust(50)+("Model:\t%s ;" % a[0].__name__).ljust(40) + ("Score: BROKEN ").ljust(25) + str(str(a[1])))
 
                 #TemporaryMetrics.model_meta.append(("Feature:%s ;" % feat)+("Model:%s ;" % a[0].__name__) + str(a[1]))
 
-                TemporaryMetrics.model_short.append(("BROKEN Model:%s ;" % a[0].__name__) + str(a[1]))
+                #TemporaryMetrics.model_short.append(("BROKEN Model:%s ;" % a[0].__name__) + str(a[1]))
                 print "TIMED OUT"
 
 
@@ -334,18 +318,18 @@ def train_slave(clips):
 
         ###
     print "DONE training slave"
-    return (predictions, seizure_cv, models)
+    return (predictions, seizure_cv, models ,metafeatures)
     #return (models, seizure_cv)
 
 
-def train_master(predictions, seizure_cv):
-
+def train_master(predictions, seizure_cv, metafeatures):
+    print "training master"
     feature_layer = []
 
-    for i in range(len(predictions[0])):
+    for i in range(len(predictions[0])): #for every .mat
         toadd = []
-        for category in range(len(predictions)):
-            toadd.append(predictions[category][i])
+        for category in range(len(predictions)): #for every metafeature prediction set added to predictions
+            toadd.append(predictions[category][i]) # add the corresponding prediction for that mat,  as guessed by that metafeature model
         feature_layer.append(toadd)
 
     #print seizure_cv
@@ -356,10 +340,30 @@ def train_master(predictions, seizure_cv):
 
 
     clf_layer.fit(feature_layer, seizure_cv)
+
+    retry = False
+    todel = []
+    print clf_layer.coef_
+    for i in range(len(clf_layer.coef_[0])):
+        if clf_layer.coef_[0][i] < 0:
+            todel.append(i)
+            retry = True
+
+
+    if retry:
+        for index in sorted(todel, reverse=True):
+            print "deleting: ", metafeatures[index][0],metafeatures[index][1].__class__.__name__ , clf_layer.coef_[0][index]
+            del predictions[index]
+            del metafeatures[index]
+            del TemporaryMetrics.model_titles[index]
+            del TemporaryMetrics.model_short[index]
+
+        return train_master(predictions, seizure_cv, metafeatures)
+
     return clf_layer
 
 
-def generate_test_layer(test_data, models, features):
+def generate_test_layer(test_data, models, features, metafeatures):
     toret = []
     final = []
     formatted_data = []
@@ -367,24 +371,31 @@ def generate_test_layer(test_data, models, features):
 
     print test_data[0].features
     print features
-    for k in features:
-        for a in algorithms:
-            toadd = []
-            for c in test_data:
-                toadd.append(c.features[k])
-            formatted_data.append(toadd)
+
+    # for k in features:
+    #     for a in algorithms:
+    #         toadd = []
+    #         for c in test_data:
+    #             toadd.append(c.features[k])
+    #         formatted_data.append(toadd)
+
+    for feat, mod in metafeatures:
+        toadd = []
+        for c in test_data:
+            toadd.append(c.features[feat])
+        toret.append(mod.predict(toadd))
 
 
-    i = 0
-    for m in models:
-        if m==0:
-
-            toret.append([0] * len(formatted_data[i]))
-            i+=1
-            continue
-
-        toret.append(m.predict(formatted_data[i]))
-        i+=1
+    # i = 0
+    # for m in models:
+    #     if m==0:
+    #
+    #         toret.append([0] * len(formatted_data[i]))
+    #         i+=1
+    #         continue
+    #
+    #     toret.append(m.predict(formatted_data[i]))
+    #     i+=1
 
 
     for t in range(len(test_data)):
@@ -400,7 +411,7 @@ def generate_test_layer(test_data, models, features):
 
     #for f in final:
     #    print f
-    return final
+    return (final, metafeatures)
 
 
 def generate_validation_results(data):
@@ -449,11 +460,14 @@ def analyze_dataset(clips, test_data, early=False):
 
     #EDITS GO HERE
 
-    (predictions, seizure_cv, models) = train_slave(clips)
-    clf_layer = train_master(predictions, seizure_cv)
-    final_feature_layer = generate_test_layer(test_data, models, clips[0].features.keys())
+    (predictions, seizure_cv, models, metafeatures) = train_slave(clips)
+    print "before metafeatures: ", len(metafeatures)
+    clf_layer = train_master(predictions, seizure_cv, metafeatures)
+    print "after metafeatures: ", len(metafeatures)
 
+    (final_feature_layer, metafeatures) = generate_test_layer(test_data, models, clips[0].features.keys(), metafeatures)
 
+    #print "final metafeatures: ", len(metafeatures)
 
     final_predict = clf_layer.predict_proba(final_feature_layer)
 
@@ -471,7 +485,7 @@ def analyze_dataset(clips, test_data, early=False):
     #print "Coefficients: ", clf_layer.coef_
 
 
-    final_feature_layer_check = generate_test_layer(final_validate, models, clips[0].features.keys())
+    (final_feature_layer_check, metafeatures) = generate_test_layer(final_validate, models, clips[0].features.keys(), metafeatures)
     final_validation_results = generate_validation_results(final_validate)
     print "SCORE: ", clf_layer.score(final_feature_layer_check, final_validation_results)
 
@@ -531,7 +545,7 @@ def procc(result_q):
     final =  score/float(count)
     print final
 
-    TemporaryMetrics.print_scores()
+    #TemporaryMetrics.print_scores()
 
 
 
@@ -546,7 +560,7 @@ def procc(result_q):
             (res, names) = run_analysis(train, test, early=True)
             all_predictions+=res
 
-        TemporaryMetrics.print_scores()
+        #TemporaryMetrics.print_scores()
 
         for x in TemporaryMetrics.AUC_Mappings:
             score += x[0] * x[1]
@@ -600,7 +614,7 @@ if __name__ == '__main__':
 
     early_mode = False
     SUBJECTS = ['Dog_1','Dog_2','Dog_3','Dog_4','Patient_1','Patient_2','Patient_3','Patient_4','Patient_5','Patient_6','Patient_7','Patient_8']
-    SUBJECTS = SUBJECTS[1:2]
+    SUBJECTS = SUBJECTS[:]
 
     restart = False
 
@@ -613,10 +627,10 @@ if __name__ == '__main__':
         f.write("clip,seizure,early\n")
         f.close()
 
-    FINAL_VERIFY_PERCENT= .05
-    algorithms = ModelList.models_kitchen_sink
+    FINAL_VERIFY_PERCENT= .15
+    #algorithms = ModelList.models_kitchen_sink
     #algorithms = ModelList.models_best
-    #algorithms =  ModelList.models_small
+    algorithms =  ModelList.models_small
 
     multi_proc_mode = False
 
