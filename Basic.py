@@ -280,10 +280,10 @@ def train_slave(clips):
             pool.close()
 
             try:
-                clf = result.get(30)
-                #if clf.score(cv, seizure_cv) < .55:
-                #    print "BAD SCORE"
-                #    raise mp.TimeoutError
+                clf = result.get(60)
+                if clf.score(cv, seizure_cv) < .70:
+                    print "BAD SCORE"
+                    raise mp.TimeoutError
                 models.append(clf)
 
                 metafeatures.append((feat, clf))
