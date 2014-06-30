@@ -79,6 +79,7 @@ def add_feature(subject, location, feature):
             s.data=[]
 
             print s.features
+            clips.add(s)
         cPickle.dump(clips, open(fpkl, 'wb'))
 
 
