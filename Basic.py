@@ -275,7 +275,7 @@ def train_slave(clips):
                 cv.append(c.features[feat])
 
 
-            pool = mp.Pool(1, maxtasksperchild=1)
+            pool = mp.Pool(1)
             result = pool.apply_async(fit_this, (clf,fit,seizure_fit,))
             pool.close()
 
