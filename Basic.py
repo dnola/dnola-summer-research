@@ -396,6 +396,7 @@ def generate_test_layer(test_data, models, features, metafeatures):
             toret.append(mod.predict(toadd))
         except:
             toret.append([.5] * (len(toadd)))
+            print "FAILURE: Couldn't apply model to test data"
 
 
     # i = 0
