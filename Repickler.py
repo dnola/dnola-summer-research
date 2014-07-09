@@ -251,6 +251,11 @@ def pickle_dataset(subject, location):
         clips.append(s)
     print "cleared"
     cPickle.dump(clips, open(subject+'.pkl', 'wb'))
+    for t in test_data:
+        if 'ictal' in t.name:
+            print "BAD CLIP IN TEST DATA"
+            exit(1)
+
     cPickle.dump(test_data, open(subject+'_TEST.pkl', 'wb'))
 
 def train_op(clip, mat, f):
