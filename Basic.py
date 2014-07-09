@@ -275,11 +275,13 @@ def train_slave(clips):
                 cv.append(c.features[feat])
 
 
-            pool = mp.Pool(1)
-            result = pool.apply_async(fit_this, (clf,fit,seizure_fit,))
-            pool.close()
+
 
             try:
+                pool = mp.Pool(1)
+                result = pool.apply_async(fit_this, (clf,fit,seizure_fit,))
+                pool.close()
+
                 clf = result.get(60)
                 if clf.score(cv, seizure_cv) < .70:
                     print "BAD SCORE"
@@ -390,7 +392,10 @@ def generate_test_layer(test_data, models, features, metafeatures):
         toadd = []
         for c in test_data:
             toadd.append(c.features[feat])
-        toret.append(mod.predict(toadd))
+        try:
+            toret.append(mod.predict(toadd))
+        except:
+            toret.append([.5] * (len(toadd)))
 
 
     # i = 0
@@ -475,6 +480,8 @@ def analyze_dataset(clips, test_data, early=False):
     (final_feature_layer, metafeatures) = generate_test_layer(test_data, models, clips[0].features.keys(), metafeatures)
 
     #print "final metafeatures: ", len(metafeatures)
+
+
 
     final_predict = clf_layer.predict_proba(final_feature_layer)
 
