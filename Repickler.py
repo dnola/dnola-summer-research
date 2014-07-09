@@ -61,7 +61,7 @@ def combine_pickles():
         cPickle.dump(final_pkl, open(first[first.rfind('/')+1:], 'wb'))
 
 
-def add_feature(subject, location, feature):
+def add_feature(subject, location, feature, fidelity = 5):
     clips = [];
     test_data = [];
     location = location+subject+'/*.mat'
@@ -75,12 +75,28 @@ def add_feature(subject, location, feature):
             mat = scipy.io.loadmat(f.next())
             s.data = mat['data']
 
-            feature(s, mat)
+            feature(s, mat, fidelity)
             s.data=[]
 
             print s.features
             clips.append(s)
         cPickle.dump(clips, open(fpkl, 'wb'))
+
+
+#####################################################################################################################
+
+def channel_variance_ratios(seg, mat, fidelity):
+    feat = 'channel_variance_ratios_x'+str(fidelity)
+    seg.features[feat] = []
+    for d in mat['data']:
+        ch_var = np.var(d)
+        seg_size = len(d)/int(fidelity)
+        for i in range(fidelity):
+            toadd = np.var(d[i*seg_size:(i+1)*i*seg_size]) / ch_var
+            seg.features[feat].append(toadd)
+    print seg.features
+
+
 
 
 def channel_sigmas(pkl, mat):
