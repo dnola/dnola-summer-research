@@ -546,6 +546,8 @@ def procc(result_q):
         #pickle_dataset(s)
         print "Done"
 
+        print len(train), len(test), len(names)
+
         cPickle.dump(zip(names,res), open(s+'_RESULTS.pkl', 'wb'))
 
 
