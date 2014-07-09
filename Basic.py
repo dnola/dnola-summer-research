@@ -283,7 +283,7 @@ def train_slave(clips):
                 clf = result.get(60)
                 if clf.score(cv, seizure_cv) < .70:
                     print "BAD SCORE"
-                    raise mp.TimeoutError
+                    raise Exception
                 models.append(clf)
 
                 metafeatures.append((feat, clf))
@@ -310,7 +310,8 @@ def train_slave(clips):
 
                 #TemporaryMetrics.model_short.append(("BROKEN Model:%s ;" % a[0].__name__) + str(a[1]))
                 print "TIMED OUT"
-
+            except:
+                print "OTHER ERROR OCCURRED"
 
 
 
