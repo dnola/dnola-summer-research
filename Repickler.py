@@ -91,6 +91,7 @@ def channel_variance_ratios(seg, mat, fidelity):
     for d in mat['data']:
         ch_var = np.var(d)
         seg_size = len(d)/int(fidelity)
+        print d
         for i in range(fidelity):
             toadd = np.var(d[i*seg_size:(i+1)*seg_size]) / ch_var
             print "add:", toadd
