@@ -172,6 +172,7 @@ def run_analysis(clips, test_data, early=False):
     for t in test_data:
         #print t.name, result[iter]
         if not 'test' in t.name:
+            print "BAD CLIP IN TEST DATA"
             exit(1)
 
         names.append(t.name)
