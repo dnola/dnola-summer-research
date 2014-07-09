@@ -171,7 +171,7 @@ def run_analysis(clips, test_data, early=False):
     final_text_single = ""
     for t in test_data:
         #print t.name, result[iter]
-        if not 'test' in t.name:
+        if not 'ictal' in t.name:
             print "BAD CLIP IN TEST DATA"
             exit(1)
 
