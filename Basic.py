@@ -171,6 +171,9 @@ def run_analysis(clips, test_data, early=False):
     final_text_single = ""
     for t in test_data:
         #print t.name, result[iter]
+        if not 'test' in t.name:
+            exit(1)
+
         names.append(t.name)
         final_text+= t.name + ","+str(round(result[iter],5)) + ",\n"
         final_text_single+= t.name + ","+str(round(result[iter],5)) + ","+str(round(result[iter],5))+"\n"
