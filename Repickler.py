@@ -62,12 +62,11 @@ def combine_pickles():
 
 
 def add_feature(subject, location, feature, fidelity = 5):
-    clips = [];
-    test_data = [];
     location = location+subject+'/*.mat'
     print location
     f = iter(glob.glob(location))
     for fpkl in glob.glob(subject+'*.pkl'):
+        clips = [];
         print "loaded: ", fpkl
         pkl = cPickle.load(open(fpkl, 'rb'))
         for s in pkl:
