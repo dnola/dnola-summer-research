@@ -255,6 +255,10 @@ def pickle_dataset(subject, location):
         if 'ictal' in t.name:
             print "BAD CLIP IN TEST DATA"
             exit(1)
+    for t in clips:
+        if 'test' in t.name:
+            print "BAD CLIP IN TRAIN DATA"
+            exit(1)
 
     cPickle.dump(test_data, open(subject+'_TEST.pkl', 'wb'))
 

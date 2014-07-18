@@ -279,8 +279,6 @@ def train_slave(clips):
                 cv.append(c.features[feat])
 
 
-
-
             try:
                 pool = mp.Pool(1)
                 result = pool.apply_async(fit_this, (clf,fit,seizure_fit,))
@@ -320,10 +318,6 @@ def train_slave(clips):
                 print "OTHER ERROR OCCURRED"
 
 
-
-
-
-        ###
     print "DONE training slave"
     return (predictions, seizure_cv, models ,metafeatures)
     #return (models, seizure_cv)
