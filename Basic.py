@@ -309,7 +309,7 @@ def train_slave(clips):
                 TemporaryMetrics.model_titles.append(("Feature:\t%s ;" % feat).ljust(50)+("Model:\t%s ;" % a[0].__name__).ljust(40) + ("Score: %s " % round(clf.score(cv, seizure_cv),5)).ljust(25) + str(str(a[1])))
 
                 #TemporaryMetrics.model_meta.append(("Feature:%s ;" % feat)+("Model:%s ;" % a[0].__name__) + str(a[1]))
-                TemporaryMetrics.model_readable.append(("Feature:\t%s ;" % feat)+(" ; Model:%s ;" % a[0].__name__) + str(a[1])
+                TemporaryMetrics.model_readable.append(("Feature:\t%s ;" % feat)+(" ; Model:%s ;" % a[0].__name__) + str(a[1]))
                 TemporaryMetrics.model_short.append(("Model:%s ;" % a[0].__name__) + str(a[1]))
 
                 predictions.append(predict)
