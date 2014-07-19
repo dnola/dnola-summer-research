@@ -70,14 +70,15 @@ def add_feature(subject, location, feature, fidelity = 5):
         print "loaded: ", fpkl
         pkl = cPickle.load(open(fpkl, 'rb'))
         for s in pkl:
-            print s.name
+            if '0' in s.name:
+                print s.name
             mat = scipy.io.loadmat(f.next())
             s.data = mat['data']
 
             feature(s, mat, fidelity)
             s.data=[]
 
-            print s.features
+            #print s.features
             clips.append(s)
         cPickle.dump(clips, open(fpkl, 'wb'))
 
