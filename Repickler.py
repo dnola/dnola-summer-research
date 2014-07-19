@@ -96,7 +96,7 @@ def channel_variance_ratios(seg, mat, fidelity):
             toadd = np.var(d[i*seg_size:(i+1)*seg_size]) / ch_var
             #print "add:", toadd
             seg.features[feat].append(toadd)
-    print seg.features
+    #print seg.features
 
 def total_variance_ratios(seg, mat, fidelity):
     feat = 'total_variance_ratios_x'+str(fidelity)
@@ -113,7 +113,7 @@ def total_variance_ratios(seg, mat, fidelity):
             toadd = np.var(d[i*seg_size:(i+1)*seg_size]) / ch_var
             #print "add:", toadd
             seg.features[feat].append(toadd)
-    print seg.features
+    #print seg.features
 
 
 def channel_sigmas(pkl, mat, fidelity):
