@@ -106,10 +106,10 @@ def channel_FFT_components(seg, mat, fidelity):
     feat = 'FFT_values_x'+str(fidelity)
     seg.features[feat] = []
     for d in mat['data']:
-        fft = np.fft.fft(d)
+        fft = np.fft.fft(d, fidelity)
         fft_freq = fft
         seg.features[feat]+=list(fft_freq)
-    print seg.features
+    #print seg.features
 
 
 
