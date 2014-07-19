@@ -324,8 +324,8 @@ def train_slave(clips):
 
                 #TemporaryMetrics.model_short.append(("BROKEN Model:%s ;" % a[0].__name__) + str(a[1]))
                 print "TIMED OUT"
-            except:
-                print "OTHER ERROR OCCURRED"
+            except Exception as e:
+                print "OTHER ERROR OCCURRED: ", e.message
 
 
     print "DONE training slave"
