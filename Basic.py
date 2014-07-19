@@ -354,7 +354,7 @@ def train_master(predictions, seizure_cv, metafeatures):
 
     clf_layer.fit(feature_layer, seizure_cv)
 
-    cPickle.dump((TemporaryMetrics.model_short, clf_layer.coef_), open('scores.spkl', 'wb'))
+    cPickle.dump((TemporaryMetrics.model_readable, clf_layer.coef_), open('scores.spkl', 'wb'))
 
     retry = False
     todel = []
