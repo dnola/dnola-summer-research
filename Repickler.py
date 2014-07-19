@@ -6,6 +6,7 @@ import glob
 import scipy.io
 from multiprocessing import *
 import numpy as np
+import itertools
 SUBJECTS = ['Dog_1','Dog_2','Dog_3','Dog_4','Patient_1','Patient_2','Patient_3','Patient_4','Patient_5','Patient_6','Patient_7','Patient_8']
 
 #SUBJECTS = ['Dog_1']
@@ -28,7 +29,7 @@ def add_total_channel_variance(subject, location):
 """
 
 def combine_pickles():
-    second_iter = iter(glob.glob('Second/*.pkl'))
+    second_iter = itertools.cycle(glob.glob('Second/*.pkl'))
 
     for first in glob.glob('First/*.pkl'):
         final_pkl = []
@@ -38,9 +39,11 @@ def combine_pickles():
         s_pkl = cPickle.load(open(second, 'rb'))
         sec = iter(s_pkl)
         for f in f_pkl:
-            s = sec.next()
-            print "first:", f.name
-            print "second", s.name
+            while f.name!=s.name:
+                print "Bad", f.name, s.name
+                s = sec.next()
+
+
             seg = EEGSegment()
             seg.frequency = f.frequency
             seg.name = f.name
