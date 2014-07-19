@@ -48,6 +48,7 @@ class TemporaryMetrics:
     model_short=[]
     model_scores = {}
     feature_scores_dict = {}
+    model_readable=[]
 
     @staticmethod
     def reset():
