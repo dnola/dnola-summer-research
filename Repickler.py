@@ -102,6 +102,17 @@ def channel_variance_ratios(seg, mat, fidelity):
             seg.features[feat].append(toadd)
     #print seg.features
 
+def channel_FFT_components(seg, mat, fidelity):
+    feat = 'FFT_values_x'+str(fidelity)
+    seg.features[feat] = []
+    for d in mat['data']:
+        fft = np.fft(d)
+        fft_freq = fft
+        seg.features[feat]+=fft_freq
+    print seg.features
+
+
+
 def total_variance_ratios(seg, mat, fidelity):
     feat = 'total_variance_ratios_x'+str(fidelity)
     ch_var = []
