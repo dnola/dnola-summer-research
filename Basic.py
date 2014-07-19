@@ -343,7 +343,7 @@ def calculate_similarities(ft):
         ot_meta = iter(TemporaryMetrics.model_readable)
         ot_values = iter(ft)
         for otv in ot_values:
-            diff = np.linalg.norm(np.vector(v)-np.vector(otv))
+            diff = np.linalg.norm(np.asarray(v)-np.asarray(otv))
             print "\t", ot_meta.next(), diff
 
 
