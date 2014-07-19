@@ -340,7 +340,7 @@ def calculate_similarities(ft):
         m = meta.next()
         print m
         v = values.next()
-        ot_meta = itertools.cycle(TemporaryMetrics.model_readable)
+        ot_meta = iter(TemporaryMetrics.model_readable)
         ot_values = iter(ft)
         for otv in ot_values:
             diff = np.linalg.norm(np.asarray(v)-np.asarray(otv))
@@ -363,7 +363,7 @@ def train_master(predictions, seizure_cv, metafeatures):
     #print feature_layer
 
 
-    calculate_similarities(feature_layer)
+    calculate_similarities(predictions)
     clf_layer = linear_model.LogisticRegression(penalty = 'l2', C= 1)
 
 
