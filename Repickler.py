@@ -110,13 +110,7 @@ def channel_FFT_components(seg, mat, fidelity):
         fft_freq = []
         print fft
         for f in fft:
-            print f.real, f.imag
-            print f.real ** 2, f.imag ** 2
-
-            if  int(f.imag) != 0:
-                fft_freq.append(f.imag ** 2 + f.real ** 2) ** .5
-            else:
-                fft_freq.append(f.real)
+            fft_freq.append((f.imag ** 2 + f.real ** 2) ** .5)
 
         seg.features[feat]+=fft_freq
     print seg.features
