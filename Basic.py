@@ -349,7 +349,10 @@ def train_master(predictions, seizure_cv, metafeatures):
     clf_layer = linear_model.LogisticRegression(penalty = 'l2', C= 1)
 
 
+
     clf_layer.fit(feature_layer, seizure_cv)
+
+    cPickle.dump((TemporaryMetrics.model_short, clf_layer.coef_), open('scores.spkl', 'wb'))
 
     retry = False
     todel = []
