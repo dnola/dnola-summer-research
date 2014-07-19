@@ -70,8 +70,8 @@ def add_feature(subject, location, feature, fidelity = 5):
         print "loaded: ", fpkl
         pkl = cPickle.load(open(fpkl, 'rb'))
         for s in pkl:
-            if '0' in s.name:
-                print s.name
+            if '1.' in s.name:
+                print s.name, fpkl
             mat = scipy.io.loadmat(f.next())
             s.data = mat['data']
 
