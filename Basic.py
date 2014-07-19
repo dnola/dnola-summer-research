@@ -169,21 +169,25 @@ def run_analysis(clips, test_data, early=False):
     iter = 0
     final_text = ""
     final_text_single = ""
+    print "Length comparison: ", len(result), len(test_data)
     for t in test_data:
         #print t.name, result[iter]
         if 'ictal' in t.name:
             print "BAD CLIP IN TEST DATA ", t.name
-            exit(1)
-    for t in clips:
-        #print t.name, result[iter]
-        if 'test' in t.name:
-            print "BAD CLIP IN TRAIN DATA ", t.name
             exit(1)
 
         names.append(t.name)
         final_text+= t.name + ","+str(round(result[iter],5)) + ",\n"
         final_text_single+= t.name + ","+str(round(result[iter],5)) + ","+str(round(result[iter],5))+"\n"
         iter+=1
+
+
+    for t in clips:
+        #print t.name, result[iter]
+        if 'test' in t.name:
+            print "BAD CLIP IN TRAIN DATA ", t.name
+            exit(1)
+
 
     #print final_text
 
