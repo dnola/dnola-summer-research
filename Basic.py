@@ -336,11 +336,11 @@ def train_slave(clips):
 def calculate_similarities(ft):
     meta = iter(TemporaryMetrics.model_readable)
     values = iter(ft)
-    print meta
     for mf in meta:
         m = meta.next()
+        print m
         v = values.next()
-        ot_meta = iter(TemporaryMetrics.model_readable)
+        ot_meta = itertools.cycle(TemporaryMetrics.model_readable)
         ot_values = iter(ft)
         for otv in ot_values:
             diff = np.linalg.norm(np.asarray(v)-np.asarray(otv))
