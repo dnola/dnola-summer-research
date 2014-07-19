@@ -39,6 +39,7 @@ def combine_pickles():
         s_pkl = cPickle.load(open(second, 'rb'))
         sec = iter(s_pkl)
         for f in f_pkl:
+            s = sec.next()
             while f.name!=s.name:
                 print "Bad", f.name, s.name
                 s = sec.next()
