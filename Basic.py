@@ -333,6 +333,21 @@ def train_slave(clips):
     return (predictions, seizure_cv, models ,metafeatures)
     #return (models, seizure_cv)
 
+def calculate_similarities(ft):
+    meta = iter(TemporaryMetrics.model_readable)
+    values = iter(ft)
+    print meta
+    for mf in meta:
+        m = meta.next()
+        v = values.next()
+        ot_meta = iter(TemporaryMetrics.model_readable)
+        ot_values = iter(ft)
+        for otv in ot_values:
+            diff = np.linalg.norm(np.vector(v)-np.vector(otv))
+            print "\t", ot_meta.next(), diff
+
+
+
 
 def train_master(predictions, seizure_cv, metafeatures):
     print "training master"
@@ -348,6 +363,7 @@ def train_master(predictions, seizure_cv, metafeatures):
     #print feature_layer
 
 
+    calculate_similarities(feature_layer)
     clf_layer = linear_model.LogisticRegression(penalty = 'l2', C= 1)
 
 
