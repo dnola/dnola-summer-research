@@ -5,7 +5,7 @@ from sklearn import ensemble
 import MultilayerPerceptron
 
 models_new_short = [
-                [MultilayerPerceptron.MultilayerPerceptronManager ,{}                                       ],
+                #[MultilayerPerceptron.MultilayerPerceptronManager ,{}                                       ],
 
                 [sklearn.svm.SVC, {}    ],
                 [sklearn.svm.SVC, {'C':.03}    ],
