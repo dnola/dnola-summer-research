@@ -105,7 +105,7 @@ class MultilayerPerceptronManager:
         X = np.vstack(features)
 
         y = np.array(y)
-        self.layer_sizes = [X.shape[0], 5, 1]
+        self.layer_sizes = [X.shape[0], 2, 1]
         print "Layer Sizes ", self.layer_sizes
 
 
