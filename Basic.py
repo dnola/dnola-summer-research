@@ -295,8 +295,13 @@ def train_slave(clips):
                 result = pool.apply_async(fit_this, (clf,fit,seizure_fit,))
                 pool.close()
 
+
+                #READD FOR TIMEOUT
                 clf = result.get(60)
-                if clf.score(cv, seizure_cv) < .70:
+                #clf.fit(fit, seizure_fit)
+
+
+                if clf.score(cv, seizure_cv) < .60:
                     print "BAD SCORE"
                     raise Exception
                 models.append(clf)
@@ -362,7 +367,7 @@ def train_master(predictions, seizure_cv, metafeatures):
     #print feature_layer
 
 
-    calculate_similarities(predictions)
+    #calculate_similarities(predictions)
 
     clf_layer = linear_model.LogisticRegression(penalty = 'l2', C= 1)
 
@@ -673,7 +678,7 @@ if __name__ == '__main__':
         f.close()
 
     FINAL_VERIFY_PERCENT= .15
-    algorithms = ModelList.models_kitchen_sink
+    algorithms = ModelList.models_MLP
     #algorithms = ModelList.models_best
     #algorithms =  ModelList.models_small
 

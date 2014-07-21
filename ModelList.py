@@ -2,10 +2,10 @@ __author__ = 'davidnola'
 import sklearn
 from sklearn import *
 from sklearn import ensemble
-
+import MultilayerPerceptron
 
 models_new_short = [
-
+                [MultilayerPerceptron.MultilayerPerceptronManager ,{}                                       ],
 
                 [sklearn.svm.SVC, {}    ],
                 [sklearn.svm.SVC, {'C':.03}    ],
@@ -219,5 +219,10 @@ models_small = [
             [sklearn.neighbors.KNeighborsClassifier ,{'n_neighbors': 5}                                      ],
             [sklearn.ensemble.GradientBoostingClassifier ,{'n_estimators': 50, 'learning_rate': 0.5}        ],
             [sklearn.neighbors.KNeighborsClassifier ,{'n_neighbors': 3}                                      ],
+
+                    ]
+
+models_MLP = [
+                    [MultilayerPerceptron.MultilayerPerceptronManager ,{}                                       ],
 
                     ]
