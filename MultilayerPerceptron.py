@@ -9,8 +9,13 @@ print theano
 
 theano.config.optimizer = 'None'
 
+
 class Storage:
     model = None
+
+def inspect_inputs(i, node, fn):
+    #print i, node, "input(s) value(s):", [input[0] for input in fn.inputs],
+    print "pre"
 
 
 class Layer(object):
@@ -22,11 +27,12 @@ class Layer(object):
 
         self.W = theano.shared(value=W_init.astype(theano.config.floatX),
                                name='W',
-                               borrow=True)
+                               #borrow=True,
+                               )
 
         self.b = theano.shared(value=b_init.reshape(-1, 1).astype(theano.config.floatX),
                                name='b',
-                               borrow=True,
+                               #borrow=True,
                                broadcastable=(False, True))
         self.activation = activation
         self.params = [self.W, self.b]
@@ -62,6 +68,7 @@ class MLP(object):
 
         for layer in self.layers:
             x = layer.output(x)
+        #print "out"
         return x
 
     def squared_error(self, x, y):
@@ -70,7 +77,8 @@ class MLP(object):
         xent = -y * T.log(p_1) - (1-y) * T.log(1-p_1)
         cost = xent.mean()# + 0.01 * (w ** 2).sum()
 
-        return cost
+        #return cost
+        return T.sum((self.output(x) - y)**2)
 
 
 
@@ -86,10 +94,12 @@ class MultilayerPerceptronManager:
         updates = []
 
         for param in params:
-            self.param_update = theano.shared(param.get_value()*0., broadcastable=param.broadcastable)
+
+            self.param_update = theano.shared( param.get_value()*0.5, broadcastable=param.broadcastable)
 
             updates.append((param, param - learning_rate*self.param_update))
             updates.append((self.param_update, momentum*self.param_update + (1. - momentum)*T.grad(cost, param)))
+        #print "here"
         return updates
 
 
@@ -105,7 +115,7 @@ class MultilayerPerceptronManager:
         X = np.vstack(features)
 
         y = np.array(y)
-        self.layer_sizes = [X.shape[0], 2, 1]
+        self.layer_sizes = [X.shape[0], 100, 1]
         print "Layer Sizes ", self.layer_sizes
 
 
@@ -119,6 +129,7 @@ class MultilayerPerceptronManager:
             self.b_init.append(np.ones(n_output))
 
             self.activations.append(T.nnet.sigmoid)
+            #self.activations.append(T.tanh)
 
         self.mlp = MLP(self.W_init, self.b_init, self.activations)
 
@@ -126,27 +137,35 @@ class MultilayerPerceptronManager:
 
         self.mlp_target = T.vector('mlp_target')
 
-        self.learning_rate = 0.01
-        self.momentum = 0.9
+        self.learning_rate = 0.00001
+        self.momentum = .9
 
         self.cost = self.mlp.squared_error(self.mlp_input, self.mlp_target)
 
         self.train = theano.function([self.mlp_input, self.mlp_target], self.cost,
                                 updates=self.gradient_updates_momentum(self.cost, self.mlp.params, self.learning_rate, self.momentum))
 
-        self.mlp_output = theano.function([self.mlp_input], self.mlp.output(self.mlp_input))
+        self.mlp_output = theano.function([self.mlp_input], self.mlp.output(self.mlp_input),
+                                        #mode=theano.compile.MonitorMode(    pre_func=inspect_inputs,)
+                        )
 
 
         self.iteration = 0
 
-        self.max_iteration = 10000
+        self.max_iteration = 1000
         while self.iteration < self.max_iteration:
+            if self.iteration%50 == 0:
+                print self.iteration
 
             self.current_cost = self.train(X, y)
 
+            #print "done with train"
+
             self.current_output = self.mlp_output(X)
+            #print self.current_output[0]
 
             accuracy = np.mean((self.current_output > .5) == y)
+            #print "acc", accuracy
 
             self.iteration += 1
 
@@ -176,12 +195,19 @@ class MultilayerPerceptronManager:
         predictions = self.predict(X)
         y = np.array(y)
 
-        print "pred", predictions
-        print "act", y
+        print "pred\t", predictions
+        print "act\t", list(y)
         classes =  [ (x > .5) * 1.0 for x in self.predict(X)]
         print "test", classes
 
-        accuracy = np.mean(classes == y)
+        score = 0
+        for i in range(len(y)):
+            if y[i] == classes[i]:
+                score+=1.0
+
+        #accuracy = np.mean( [c == yiter.next() for c in classes])
+        accuracy = score/float(len(y))
+
         print "accuracy: ", accuracy
         return .6
 

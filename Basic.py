@@ -664,7 +664,7 @@ if __name__ == '__main__':
 
     early_mode = False
     SUBJECTS = ['Dog_1','Dog_2','Dog_3','Dog_4','Patient_1','Patient_2','Patient_3','Patient_4','Patient_5','Patient_6','Patient_7','Patient_8']
-    SUBJECTS = SUBJECTS[:2]
+    SUBJECTS = SUBJECTS[3:4]
 
     restart = False
 
