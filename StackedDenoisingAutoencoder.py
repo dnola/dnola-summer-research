@@ -3,9 +3,11 @@ __author__ = 'davidnola'
 import theano
 import theano.tensor as T
 import numpy as np
+import cPickle
+import DenoisingAutoencoder as DA
 
 print theano
-import cPickle
+from theano.tensor.shared_randomstreams import RandomStreams
 theano.config.optimizer = 'None'
 
 class Storage:
@@ -50,9 +52,14 @@ class MLP(object):
 
 
 
-    def output(self, x):
+    def output(self, x, down = 0):
 
-        for layer in self.layers:
+        if down != 0:
+            active = self.layers[:-down]
+        else:
+            active = self.layers
+
+        for layer in active:
             x = layer.output(x)
         #print "out"
         return x
@@ -69,7 +76,7 @@ class MLP(object):
 
 
 
-class MultilayerPerceptronManager:
+class SDAManager:
     def __init__(self):
         pass
 
@@ -88,6 +95,27 @@ class MultilayerPerceptronManager:
         #print "here"
         return updates
 
+    def generate_pretraining_functions(self):
+        corruption_level = T.scalar('corruption')  # amount of corruption to use
+        learning_rate = T.scalar('lr')  # learning rate to use
+
+
+        pretrain_fns = []
+        for dA in self.autoencoders:
+            # get the cost and the updates list
+            cost, updates = dA.get_cost_updates(corruption_level, learning_rate)
+            # compile the theano function
+            fn = theano.function(inputs=[
+                              theano.Param(corruption_level, default=0.2),
+                              theano.Param(learning_rate, default=0.1)],
+                    outputs=cost,
+                    updates=updates,
+                    givens={self.mlp_input: self.X},
+                    mode='DebugMode')
+            # append `fn` to the list of functions
+            pretrain_fns.append(fn)
+
+        return pretrain_fns
 
     def fit(self, X, y):
         features = []
@@ -98,10 +126,11 @@ class MultilayerPerceptronManager:
             features.append(toadd)
             #print toadd
 
-        X = np.vstack(features).astype(theano.config.floatX)
+        X = np.vstack(features)
+        self.X = X
 
-        y = np.array(y).astype(theano.config.floatX)
-        self.layer_sizes = [X.shape[0], 10, 1]
+        y = np.array(y)
+        self.layer_sizes = [X.shape[0], 30, 4, 1]
         print "Layer Sizes ", self.layer_sizes
 
 
@@ -119,9 +148,34 @@ class MultilayerPerceptronManager:
 
         self.mlp = MLP(self.W_init, self.b_init, self.activations)
 
-        self.mlp_input = T.matrix('mlp_input')
 
+        self.autoencoders = []
+        print "new"
+
+
+
+        self.mlp_input = T.matrix('mlp_input')
         self.mlp_target = T.vector('mlp_target')
+
+
+
+        inputs = []
+        inputs.append(self.mlp_input)
+
+        for i in reversed(range(len(self.mlp.layers)-1)):
+            inputs.append(self.mlp.output(self.mlp_input, i))
+
+        in_iter = iter(inputs)
+        in_len_iter = iter(self.layer_sizes)
+        out_len_iter = iter(self.layer_sizes[1:])
+        for layer in self.mlp.layers:
+            print layer.W.get_value()
+            next = in_iter.next()
+            a = DA.dA(input = next, n_visible = in_len_iter.next(), n_hidden = out_len_iter.next(), W=layer.W, bhid=layer.b)
+            self.autoencoders.append(a)
+
+
+
 
         self.learning_rate = 0.00001
         self.momentum = .9
@@ -134,6 +188,33 @@ class MultilayerPerceptronManager:
         self.mlp_output = theano.function([self.mlp_input], self.mlp.output(self.mlp_input),
                                         #mode=theano.compile.MonitorMode(    pre_func=inspect_inputs,)
                         )
+
+
+
+
+        print "more new"
+
+        self.pretrain_functions = self.generate_pretraining_functions()
+        #
+        # for xi in range(len(self.pretrain_functions)):
+        #     self.pretrain_functions[xi](corruption=0.2, lr=0.00001 )
+
+
+
+        rng = np.random.RandomState(123)
+        theano_rng = RandomStreams(rng.randint(2 ** 30))
+
+        da = DA.dA(theano_rng=theano_rng, input=self.mlp_input,
+                n_visible=16, n_hidden=500)
+
+        cost, updates = da.get_cost_updates(corruption_level=0.,
+                                            learning_rate=self.learning_rate)
+
+        train_da = theano.function([], cost, updates=updates,
+             givens={self.mlp_input: X})
+
+        for xz in range(100):
+            train_da()
 
 
         self.iteration = 0
@@ -199,70 +280,26 @@ class MultilayerPerceptronManager:
 
 
 
-class EEGSegment:
-    features = {
-            # 'channel_variances': [],
-            # 'channel_1sig_times_exceeded': [],
-            # 'channel_2sig_times_exceeded': [],
-            # 'channel_3sig_times_exceeded': [],
-        }
 
-    def __init__(self):
-        self.name = ""
-        self.data = []
-        self.latency = -1
-        self.seizure = False
-        self.frequency = 0
-        self.features = {
-            # 'channel_variances': [],
-            # 'channel_1sig_times_exceeded': [],
-            # 'channel_2sig_times_exceeded': [],
-            # 'channel_3sig_times_exceeded': [],
-        }
+def test_model():
+    test = cPickle.load(open("SummerResearchData/"+'Dog_1'+'_TEST.pkl', 'rb'))
+    train = cPickle.load(open("SummerResearchData/"+'Dog_1'+'.pkl', 'rb'))
 
+    features = []
+    classes = []
 
+    for c in train:
+        #print c.features
+        features.append(c.features['channel_variances'])
+        classes.append(c.seizure)
 
-    def segment_info(self, showdata=False):
-        print "SEIZURE: " + str(self.seizure)
-        print "LATENCY: " + str(self.latency)
+    features_test = []
+    for c in test:
+        #print c.features
+        features_test.append(c.features['channel_variances'])
 
-        if showdata:
-            print "DATA: "
-            for l in self.data:
-                print l
-                print
+    s = SDAManager()
+    s.fit(features, classes)
+    print s.predict(features_test)
 
-        print "END\n"
-
-    def calculate_features(self):
-
-
-        self.features['channel_variances'] = []
-        iter = 0
-        for d in self.data:
-            x = np.var(d)
-            self.features['channel_variances'].append(x)
-
-
-        cursig = 0
-        for siglevel in ['channel_1sig_times_exceeded', 'channel_2sig_times_exceeded', 'channel_3sig_times_exceeded']:
-            self.features[iter] = []
-            cursig+=1
-            iter = 0.0
-            for d in self.data:
-                iter += 1.0
-                stddev = np.std(d)
-                mean = np.mean(d)
-                prior = d[0]
-                exceeded = 0
-                for x in d[1:]:
-                    if prior < (cursig*stddev + mean) and x > (cursig*stddev + mean):
-                        exceeded+=1
-                    prior = x
-                self.features[siglevel].append(exceeded)
-
-        self.data = []
-        print self.features
-
-
-
+#test_model()
