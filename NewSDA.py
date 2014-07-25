@@ -294,9 +294,9 @@ class SdA(object):
         return train_fn, valid_score, test_score
 
 
-def test_SdA(finetune_lr=0.0001, pretraining_epochs=15,
-             pretrain_lr=0.0001, training_epochs=1000,
-             dataset='mnist.pkl.gz', batch_size=1):
+def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
+             pretrain_lr=0.01, training_epochs=1000,
+             dataset='mnist.pkl.gz', batch_size=2):
     """
     Demonstrates how to train and test a stochastic denoising autoencoder.
 
@@ -330,8 +330,9 @@ def test_SdA(finetune_lr=0.0001, pretraining_epochs=15,
     classes = []
 
     for c in train:
-        #print c.features
-        features.append(c.features['channel_variances'])
+        print c.features
+        features.append(c.features['channel_variances']+c.features['variance_over_time_10'])
+
         if c.seizure:
             classes.append(1)
         else:
@@ -345,19 +346,16 @@ def test_SdA(finetune_lr=0.0001, pretraining_epochs=15,
         features_test.append(c.features['channel_variances']);
 
 
-    train_set_x, train_set_y = datasets[0]
-    valid_set_x, valid_set_y = datasets[1]
-    test_set_x, test_set_y = datasets[2]
+    features = numpy.array(features)
+    features = features / abs(numpy.max(features))
+    print features
 
-
-    print train_set_x.get_value()[0]
-
-    datasets[0] = (theano.shared(numpy.asarray(features[:50], dtype=theano.config.floatX)),
-                    T.cast(theano.shared(numpy.asarray(classes[:50], dtype=theano.config.floatX)),'int32'))
-    datasets[1] = (theano.shared(numpy.asarray(features[50:150], dtype=theano.config.floatX)),
-                    T.cast(theano.shared(numpy.asarray(classes[50:150], dtype=theano.config.floatX)),'int32'))
-    datasets[2] = (theano.shared(numpy.asarray(features[150:], dtype=theano.config.floatX)),
-                    T.cast(theano.shared(numpy.asarray(classes[150:], dtype=theano.config.floatX)),'int32'))
+    datasets[0] = (theano.shared(numpy.asarray(features[:200], dtype=theano.config.floatX)),
+                    T.cast(theano.shared(numpy.asarray(classes[:200], dtype=theano.config.floatX)),'int32'))
+    datasets[1] = (theano.shared(numpy.asarray(features[200:400], dtype=theano.config.floatX)),
+                    T.cast(theano.shared(numpy.asarray(classes[200:400], dtype=theano.config.floatX)),'int32'))
+    datasets[2] = (theano.shared(numpy.asarray(features[400:], dtype=theano.config.floatX)),
+                    T.cast(theano.shared(numpy.asarray(classes[400:], dtype=theano.config.floatX)),'int32'))
 
     train_set_x, train_set_y = datasets[0]
     valid_set_x, valid_set_y = datasets[1]
@@ -375,8 +373,8 @@ def test_SdA(finetune_lr=0.0001, pretraining_epochs=15,
     numpy_rng = numpy.random.RandomState(453)
     print '... building the model'
     # construct the stacked denoising autoencoder class
-    sda = SdA(numpy_rng=numpy_rng, n_ins=16,
-              hidden_layers_sizes=[1000, 100, 10],
+    sda = SdA(numpy_rng=numpy_rng, n_ins=176,
+              hidden_layers_sizes=[100, 20, 10],
               n_outs=10)
 
     #########################
@@ -389,7 +387,7 @@ def test_SdA(finetune_lr=0.0001, pretraining_epochs=15,
     print '... pre-training the model'
     start_time = time.clock()
     ## Pre-train layer-wise
-    corruption_levels = [0, 0, 0]
+    corruption_levels = [0.01, 0.02, 0.03]
     for i in xrange(sda.n_layers):
         # go through pretraining epochs
         for epoch in xrange(pretraining_epochs):
@@ -420,10 +418,10 @@ def test_SdA(finetune_lr=0.0001, pretraining_epochs=15,
 
     print '... finetunning the model'
     # early-stopping parameters
-    patience = 10 * n_train_batches  # look as this many examples regardless
-    patience_increase = 2.  # wait this much longer when a new best is
+    patience = 100 * n_train_batches  # look as this many examples regardless
+    patience_increase = 25.  # wait this much longer when a new best is
                             # found
-    improvement_threshold = 0.995  # a relative improvement of this much is
+    improvement_threshold = 0.9998  # a relative improvement of this much is
                                    # considered significant
     validation_frequency = min(n_train_batches, patience / 2)
                                   # go through this many
@@ -451,7 +449,7 @@ def test_SdA(finetune_lr=0.0001, pretraining_epochs=15,
                 print('epoch %i, minibatch %i/%i, validation error %f %%' %
                       (epoch, minibatch_index + 1, n_train_batches,
                        this_validation_loss * 100.))
-                print validation_losses
+                #print validation_losses
 
                 # if we got the best validation score until now
                 if this_validation_loss < best_validation_loss:

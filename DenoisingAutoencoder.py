@@ -96,7 +96,7 @@ class dA(object):
 
 
         L = - T.sum(self.x * T.log(z) + (1 - self.x) * T.log(1 - z), axis=1)
-        L = z ** 2 - self.x ** 2
+       # L = z ** 2 - self.x ** 2
         # note : L is now a vector, where each element is the
         #        cross-entropy cost of the reconstruction of the
         #        corresponding example of the minibatch. We need to
@@ -104,7 +104,7 @@ class dA(object):
         #        the minibatch
         cost = T.mean(L)
 
-        cost =  T.sum((self.x - z)**2)
+        #cost =  T.sum((self.x - z)**2)
 
         # compute the gradients of the cost of the `dA` with respect
         # to its parameters
