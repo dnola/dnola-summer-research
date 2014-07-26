@@ -518,12 +518,12 @@ def analyze_dataset(clips, test_data, early=False):
 
 
 
-    final_predict = clf_layer.predict_proba(final_feature_layer)
+    final_predict = clf_layer.predict(final_feature_layer)
 
 
 
 
-    final_predict = [1.0-x[0] for x in final_predict]
+    #final_predict = [1.0-x[0] for x in final_predict]
 
 
 
@@ -539,14 +539,14 @@ def analyze_dataset(clips, test_data, early=False):
     print "SCORE: ", clf_layer.score(final_feature_layer_check, final_validation_results)
 
 
-    from sklearn.metrics import roc_curve, auc
-    fpr, tpr, thresholds = roc_curve(final_validation_results, clf_layer.predict_proba(final_feature_layer_check)[:, 1])
-    roc_auc = auc(fpr, tpr)
-    print "Area under the ROC curve : %f" % roc_auc
-
-    #TemporaryMetrics.feature_scores_raw.append(clf_layer.coef_)
-
-    TemporaryMetrics.AUC_Mappings.append([len(clips)+FINAL_VERIFY_SIZE, roc_auc])
+    # from sklearn.metrics import roc_curve, auc
+    # fpr, tpr, thresholds = roc_curve(final_validation_results, clf_layer.predict(final_feature_layer_check)[:, 1])
+    # roc_auc = auc(fpr, tpr)
+    # print "Area under the ROC curve : %f" % roc_auc
+    #
+    # #TemporaryMetrics.feature_scores_raw.append(clf_layer.coef_)
+    #
+    # TemporaryMetrics.AUC_Mappings.append([len(clips)+FINAL_VERIFY_SIZE, roc_auc])
 
 
 
