@@ -37,7 +37,7 @@ def combine_pickles():
 
         f_pkl = cPickle.load(open(first, 'rb'))
         s_pkl = cPickle.load(open(second, 'rb'))
-        sec = iter(s_pkl)
+        sec = itertools.cycle(s_pkl)
         for f in f_pkl:
             s = sec.next()
             while f.name!=s.name:
