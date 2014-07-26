@@ -394,7 +394,7 @@ def train_master(predictions, seizure_cv, metafeatures):
 
     if retry:
         for index in sorted(todel, reverse=True):
-            print "deleting: ", metafeatures[index][0],metafeatures[index][1].__class__.__name__ , clf_layer.coef_[0][index]
+            print "deleting: ", metafeatures[index][0],metafeatures[index][1].__class__.__name__ , clf_layer_lin.coef_[0][index]
             del predictions[index]
             del metafeatures[index]
             del TemporaryMetrics.model_titles[index]
