@@ -369,19 +369,19 @@ def train_master(predictions, seizure_cv, metafeatures):
 
     #calculate_similarities(predictions)
 
-    clf_layer = linear_model.LogisticRegression(penalty = 'l2', C= 1)
+    clf_layer_lin = linear_model.LogisticRegression(penalty = 'l2', C= 1)
+    clf_layer = sklearn.ensemble.GradientBoostingClassifier(learning_rate = .1, n_estimators = 100)
 
-
-
+    clf_layer_lin.fit(feature_layer, seizure_cv)
     clf_layer.fit(feature_layer, seizure_cv)
 
-    cPickle.dump((TemporaryMetrics.model_readable, clf_layer.coef_), open('scores.spkl', 'wb'))
+    cPickle.dump((TemporaryMetrics.model_readable, clf_layer_lin.coef_), open('scores.spkl', 'wb'))
 
     retry = False
     todel = []
-    print clf_layer.coef_
-    for i in range(len(clf_layer.coef_[0])):
-        if clf_layer.coef_[0][i] < 0:
+    print clf_layer_lin.coef_
+    for i in range(len(clf_layer_lin.coef_[0])):
+        if clf_layer_lin.coef_[0][i] < 0:
             todel.append(i)
             retry = True
 

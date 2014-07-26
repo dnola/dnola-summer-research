@@ -9,7 +9,7 @@ import DenoisingAutoencoder as DA
 print theano
 from theano.tensor.shared_randomstreams import RandomStreams
 theano.config.optimizer = 'None'
-
+theano.config.exception_verbosity='high'
 class Storage:
     model = None
 
@@ -67,8 +67,8 @@ class MLP(object):
     def squared_error(self, x, y):
 
         p_1 = self.output(x)
-        xent = -y * T.log(p_1) - (1-y) * T.log(1-p_1)
-        cost = xent.mean()# + 0.01 * (w ** 2).sum()
+        #xent = -y * T.log(p_1) - (1-y) * T.log(1-p_1)
+        #cost = xent.mean()# + 0.01 * (w ** 2).sum()
 
         #return cost
         return T.sum((self.output(x) - y)**2)
@@ -118,19 +118,21 @@ class SDAManager:
         return pretrain_fns
 
     def fit(self, X, y):
-        features = []
-        for i in range(len(X[0])):
-            toadd = []
-            for x in X:
-                toadd.append(x[i])
-            features.append(toadd)
-            #print toadd
-
-        X = np.vstack(features)
-        self.X = X
+        # features = []
+        # for i in range(len(X[0])):
+        #     toadd = []
+        #     for x in X:
+        #         toadd.append(x[i])
+        #     features.append(toadd)
+        #     #print toadd
+        #
+        # X = np.vstack(features)
+        # print X[0]
+        self.X = np.array(X)
+        print self.X[0]
 
         y = np.array(y)
-        self.layer_sizes = [X.shape[0], 30, 4, 1]
+        self.layer_sizes = [self.X.shape[0], 30, 4, 1]
         print "Layer Sizes ", self.layer_sizes
 
 
@@ -196,25 +198,25 @@ class SDAManager:
 
         self.pretrain_functions = self.generate_pretraining_functions()
         #
-        # for xi in range(len(self.pretrain_functions)):
-        #     self.pretrain_functions[xi](corruption=0.2, lr=0.00001 )
+        for xi in range(len(self.pretrain_functions)):
+             self.pretrain_functions[xi](corruption=0.2, lr=0.00001 )
 
 
 
-        rng = np.random.RandomState(123)
-        theano_rng = RandomStreams(rng.randint(2 ** 30))
-
-        da = DA.dA(theano_rng=theano_rng, input=self.mlp_input,
-                n_visible=16, n_hidden=500)
-
-        cost, updates = da.get_cost_updates(corruption_level=0.,
-                                            learning_rate=self.learning_rate)
-
-        train_da = theano.function([], cost, updates=updates,
-             givens={self.mlp_input: X})
-
-        for xz in range(100):
-            train_da()
+        # rng = np.random.RandomState(123)
+        # theano_rng = RandomStreams(rng.randint(2 ** 30))
+        #
+        # da = DA.dA(theano_rng=theano_rng, input=self.mlp_input,
+        #         n_visible=16, n_hidden=500)
+        #
+        # cost, updates = da.get_cost_updates(corruption_level=0.,
+        #                                     learning_rate=self.learning_rate)
+        #
+        # train_da = theano.function([], cost, updates=updates,
+        #      givens={self.mlp_input: self.X})
+        #
+        # for xz in range(100):
+        #     train_da()
 
 
         self.iteration = 0
@@ -232,11 +234,14 @@ class SDAManager:
             #print self.current_output[0]
 
             accuracy = np.mean((self.current_output > .5) == y)
-            #print "acc", accuracy
+            print "acc", accuracy
 
             self.iteration += 1
 
         self.model = self.mlp
+
+        print "done"
+        print self.current_output[0]
 
     def predict(self, X):
         features = []
