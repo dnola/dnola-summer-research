@@ -101,7 +101,7 @@ class MultilayerPerceptronManager:
         X = np.vstack(features).astype(theano.config.floatX)
 
         y = np.array(y).astype(theano.config.floatX)
-        self.layer_sizes = [X.shape[0], 10, 1]
+        self.layer_sizes = [X.shape[0], 100, 50, 1]
         print "Layer Sizes ", self.layer_sizes
 
 
@@ -138,7 +138,7 @@ class MultilayerPerceptronManager:
 
         self.iteration = 0
 
-        self.max_iteration = 1000
+        self.max_iteration = 10000
         while self.iteration < self.max_iteration:
             if self.iteration%50 == 0:
                 print self.iteration

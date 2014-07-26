@@ -23,7 +23,7 @@ import itertools
 from sklearn import *
 from sklearn import ensemble
 import operator
-
+import MultilayerPerceptron
 
 
 class timeout:
@@ -371,6 +371,7 @@ def train_master(predictions, seizure_cv, metafeatures):
 
     clf_layer_lin = linear_model.LogisticRegression(penalty = 'l2', C= 1)
     clf_layer = sklearn.ensemble.GradientBoostingClassifier(learning_rate = .1, n_estimators = 100)
+    clf_layer = MultilayerPerceptron.MultilayerPerceptronManager()
 
     clf_layer_lin.fit(feature_layer, seizure_cv)
     clf_layer.fit(feature_layer, seizure_cv)
