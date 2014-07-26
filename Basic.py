@@ -543,7 +543,7 @@ def analyze_dataset(clips, test_data, early=False):
     roc_auc = auc(fpr, tpr)
     print "Area under the ROC curve : %f" % roc_auc
 
-    TemporaryMetrics.feature_scores_raw.append(clf_layer.coef_)
+    #TemporaryMetrics.feature_scores_raw.append(clf_layer.coef_)
 
     TemporaryMetrics.AUC_Mappings.append([len(clips)+FINAL_VERIFY_SIZE, roc_auc])
 
