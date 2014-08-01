@@ -131,6 +131,8 @@ def channel_downsample_multi(seg, mat, fidelity=100):
         toadd = scipy.ndimage.interpolation.zoom(d, scale)
         seg.features[feat]+=list(toadd)
 
+    print seg.name, "done"
+
 
     #resized = scipy.misc.imresize(mat['data'], ( chan_count, fidelity) )
 
