@@ -99,8 +99,8 @@ def channel_downsample(seg, mat, fidelity=100):
     print feat
     seg.features[feat] = []
     print "len", len (mat['data'][0])
-    print "len", len (mat['data'])
-    resized = scipy.misc.imresize(mat['data'], (len (mat['data']) , fidelity) )
+    chan_count =  len (mat['data'])
+    resized = scipy.misc.imresize(mat['data'], (fidelity, chan_count) )
 
     print "len2", len (resized[0])
     print "len2", len (resized)
