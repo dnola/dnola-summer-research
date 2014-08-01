@@ -403,7 +403,7 @@ def train_master(predictions, seizure_cv, metafeatures):
 
         return train_master(predictions, seizure_cv, metafeatures)
 
-    return clf_layer
+    return (clf_layer, clf_layer_lin)
 
 
 def generate_test_layer(test_data, models, features, metafeatures):
@@ -509,7 +509,7 @@ def analyze_dataset(clips, test_data, early=False):
 
     (predictions, seizure_cv, models, metafeatures) = train_slave(clips)
     print "before metafeatures: ", len(metafeatures)
-    clf_layer = train_master(predictions, seizure_cv, metafeatures)
+    (clf_layer, clf_layer_lin) = train_master(predictions, seizure_cv, metafeatures)
     print "after metafeatures: ", len(metafeatures)
 
     (final_feature_layer, metafeatures) = generate_test_layer(test_data, models, clips[0].features.keys(), metafeatures)
@@ -536,6 +536,8 @@ def analyze_dataset(clips, test_data, early=False):
 
     (final_feature_layer_check, metafeatures) = generate_test_layer(final_validate, models, clips[0].features.keys(), metafeatures)
     final_validation_results = generate_validation_results(final_validate)
+
+    print "OLD SCORE: ", clf_layer_lin.score(final_feature_layer_check, final_validation_results)
     print "SCORE: ", clf_layer.score(final_feature_layer_check, final_validation_results)
 
 
