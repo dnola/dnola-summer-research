@@ -96,6 +96,7 @@ def add_feature(subject, location, feature, fidelity = 0):
 
 def channel_downsample(seg, mat, fidelity=100):
     feat = 'channel_downsample_x'+str(fidelity)
+    print feat
     seg.features[feat] = []
     print "len", len (mat['data'][0])
     print "len", len (mat['data'])
