@@ -99,14 +99,22 @@ def channel_downsample(seg, mat, fidelity=100):
     seg.features[feat] = []
 
     chan_count =  len (mat['data'])
-    resized = scipy.misc.imresize(mat['data'], (  fidelity, chan_count) )
+
+    for d in mat['data']:
+        toadd = scipy.ndimage.interpolation.zoom(d, .5)
+        print
+        print d
+        print toadd
+        seg.features[feat]+=list(toadd)
+
+
+    #resized = scipy.misc.imresize(mat['data'], ( chan_count, fidelity) )
 
 
 
-    for r in resized:
-        seg.features[feat]+=list(r)
+    # for r in resized:
+    #     seg.features[feat]+=list(r)
 
-    print mat['data'][0]
     print seg.features
 
 
