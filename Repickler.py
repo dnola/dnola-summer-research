@@ -7,7 +7,7 @@ import scipy.io
 from multiprocessing import *
 import numpy as np
 import itertools
-import scipy.misc as misc
+import scipy
 
 SUBJECTS = ['Dog_1','Dog_2','Dog_3','Dog_4','Patient_1','Patient_2','Patient_3','Patient_4','Patient_5','Patient_6','Patient_7','Patient_8']
 
@@ -98,7 +98,7 @@ def channel_downsample(seg, mat, fidelity=100):
     seg.features[feat] = []
     print "len", len (mat['data'][0])
     print "len", len (mat['data'])
-    resized = misc.imresize(mat['data'], (len (mat['data']) , fidelity) )
+    resized = scipy.misc.imresize(mat['data'], (len (mat['data']) , fidelity) )
 
     print "len2", len (resized[0])
     print "len2", len (resized)
