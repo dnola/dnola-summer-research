@@ -30,14 +30,9 @@ models_new_short = [
                 [linear_model.LogisticRegression, {'penalty' : 'l1', 'C': .3}  ],
                 [linear_model.LogisticRegression, {'penalty' : 'l1', 'C': .0003}  ],
 
-                [sklearn.ensemble.RandomForestClassifier, {'n_estimators':10}],
-                [sklearn.ensemble.RandomForestClassifier, {'n_estimators':100}],
-                [sklearn.ensemble.RandomForestClassifier, {'n_estimators':50}],
-                [sklearn.ensemble.RandomForestClassifier, {'n_estimators':25}],
-                [sklearn.ensemble.RandomForestClassifier, {'n_estimators':5}],
-                [sklearn.ensemble.RandomForestClassifier, {'n_estimators':150}],
-                [sklearn.ensemble.RandomForestClassifier, {'n_estimators':15}],
-                [sklearn.ensemble.RandomForestClassifier, {'n_estimators':75}],
+                [sklearn.ensemble.RandomForestClassifier, {'n_estimators':300}],
+                [sklearn.ensemble.RandomForestClassifier, {'n_estimators':10000}],
+
 
 
                 [sklearn.naive_bayes.GaussianNB , {}],
@@ -65,13 +60,12 @@ models_new_short = [
                 [sklearn.neighbors.KNeighborsClassifier, {'n_neighbors' : 35}],
 
 
-                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .1, 'n_estimators' : 100}],
-                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .3, 'n_estimators' : 100}],
-                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .1, 'n_estimators' : 400}],
-                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .05, 'n_estimators' : 200}],
-                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .01, 'n_estimators' : 500}],
-                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .5, 'n_estimators' : 50}],
-                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .1, 'n_estimators' : 40}],
+                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .1, 'n_estimators' : 1000}],
+                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .3, 'n_estimators' : 1000}],
+                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .01, 'n_estimators' : 1000}],
+                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .05, 'n_estimators' : 1000}],
+                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .001, 'n_estimators' : 1000}],
+                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .5, 'n_estimators' : 1000}],
 
                 ]#END
 
