@@ -101,29 +101,6 @@ def channel_downsample(seg, mat, fidelity=100):
     seg.features[feat] = []
 
     chan_count =  len (mat['data'])
-
-    for d in mat['data']:
-        toadd = scipy.ndimage.interpolation.zoom(d, .5)
-        #print
-        #print d
-        #print toadd
-        seg.features[feat]+=list(toadd)
-
-
-    #resized = scipy.misc.imresize(mat['data'], ( chan_count, fidelity) )
-
-
-
-    # for r in resized:
-    #     seg.features[feat]+=list(r)
-
-    #print seg.features
-
-def channel_downsample_multi(seg, mat, fidelity=100):
-    feat = 'channel_downsample_x'+str(fidelity)
-    seg.features[feat] = []
-
-    chan_count =  len (mat['data'])
     scale = fidelity/float(len(mat['data'][0]))
     print scale
 
@@ -132,6 +109,22 @@ def channel_downsample_multi(seg, mat, fidelity=100):
         seg.features[feat]+=list(toadd)
 
     print seg.name, "done "
+
+
+
+# def channel_downsample_multi(seg, mat, fidelity=100):
+#     feat = 'channel_downsample_x'+str(fidelity)
+#     seg.features[feat] = []
+#
+#     chan_count =  len (mat['data'])
+#     scale = fidelity/float(len(mat['data'][0]))
+#     print scale
+#
+#     for d in mat['data']:
+#         toadd = scipy.ndimage.interpolation.zoom(d, scale)
+#         seg.features[feat]+=list(toadd)
+#
+#     print seg.name, "done "
 
 
     #resized = scipy.misc.imresize(mat['data'], ( chan_count, fidelity) )
