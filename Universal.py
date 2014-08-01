@@ -9,6 +9,11 @@ from scipy.ndimage.interpolation import zoom
 import numpy as np
 import itertools
 
+import sklearn
+import sklearn.ensemble
+
+from random import shuffle
+
 class UniversalSegment:
     def __init__(self):
         pass
@@ -23,7 +28,7 @@ for s in SUBJECTS:
     next = it.next()
     one_hots[s] = [1  if x == next else 0 for x in range(12)]
 
-print one_hots
+#print one_hots
 
 one_hots_channel = {}
 it = iter(range(100))
@@ -31,7 +36,7 @@ for s in range(100):
     next = it.next()
     one_hots_channel[s] = [1  if x == next else 0 for x in range(100)]
 
-print one_hots_channel
+#print one_hots_channel
 
 
 def preprocess_subject(subject):
@@ -54,8 +59,10 @@ def preprocess_subject(subject):
         matfile = scipy.io.loadmat(f)
 
         data_file = matfile['data']
+        #print "Channel count: ", len(data_file)
         channel_num = itertools.count()
         for channel in data_file:
+            cur_num = channel_num.next()
             for i in range(4):
 
                 s = UniversalSegment()
@@ -70,6 +77,8 @@ def preprocess_subject(subject):
                 s.name = f[f.rindex('/')+1:]
                 s.features={}
 
+
+
                 scale = 400/float(len(channel))
                 s.features['downsampled_data'] = zoom(data, scale)
 
@@ -78,7 +87,7 @@ def preprocess_subject(subject):
                 s.features['downsampled_data_1st_deriv'] = np.diff(s.features['downsampled_data'])
                 s.features['downsampled_data_2nd_deriv'] = np.diff(s.features['downsampled_data_1st_deriv'])
                 s.features['1_hot_identifier'] = one_hots[subject]
-                s.features['1_hot_channel'] = one_hots_channel[channel_num.next()]
+                s.features['1_hot_channel'] = one_hots_channel[cur_num]
                 #print s.features
 
 
@@ -110,8 +119,9 @@ def preprocess_subject(subject):
                 train_data.append(s)
 
 
-    print "wait ", subject, train_data
+    print "wait ", subject
     cPickle.dump(train_data, open("Universal/"+subject+'.pkl', 'wb'))
+    print "finished train"
     cPickle.dump(target_data, open("Universal/"+subject+'_TEST.pkl', 'wb'))
     print "done ", subject
 
@@ -121,7 +131,13 @@ def fit_random_forests(subject_list):
     for s in subject_list:
         print s
         train_clips += cPickle.load(open("Universal/"+s+'.pkl', 'rb'))
+        print "Finished loading train"
         target_clips += cPickle.load(open("Universal/"+s+'_TEST.pkl', 'rb'))
+        print "Finished loading target"
+
+
+    shuffle(train_clips)
+    shuffle(target_clips)
 
     train = []
     classes = []
@@ -129,15 +145,39 @@ def fit_random_forests(subject_list):
     for t in train_clips:
         train.append(t.features['all'])
         classes.append(t.seizure)
-        ids.append(t.id)
+        ids.append(t.name)
 
-    print train
+    #print train
+
+    fit = train[::2]
+    fit_class = classes[::2]
+
+    valid = train[1:][::2]
+    valid_class = classes[1:][::2]
+
+    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 30)
+    print "Fitting forests..."
+    clf.fit(fit, fit_class)
+    results =  clf.predict_proba(valid)
+    print "SCORE:", clf.score(valid, valid_class)
+
+    layer_2_features = {}
+
+    v_it = iter(ids[1:][::2])
+    for r in results:
+        next = v_it.next()
+        print next, r
+
+        #if not layer_2_features.has_key(next):
+        #    layer_2_features[next] =
+
+
 
 
 
 
 if __name__ == '__main__':
-    for subject in SUBJECTS[0:1]:
+    for subject in SUBJECTS[:]:
         #preprocess_subject(subject)
         pass
     fit_random_forests(SUBJECTS[0:1])
