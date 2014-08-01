@@ -4,6 +4,7 @@ import cPickle
 from Basic import EEGSegment
 import glob
 import scipy.io
+import scipy.misc
 from multiprocessing import *
 import numpy as np
 import itertools
