@@ -7,6 +7,8 @@ import scipy.io
 from multiprocessing import *
 import numpy as np
 import itertools
+import scipy.misc as misc
+
 SUBJECTS = ['Dog_1','Dog_2','Dog_3','Dog_4','Patient_1','Patient_2','Patient_3','Patient_4','Patient_5','Patient_6','Patient_7','Patient_8']
 
 #SUBJECTS = ['Dog_1']
@@ -65,7 +67,7 @@ def combine_pickles():
         cPickle.dump(final_pkl, open(first[first.rfind('/')+1:], 'wb'))
 
 
-def add_feature(subject, location, feature, fidelity = 5):
+def add_feature(subject, location, feature, fidelity = 0):
     location = location+subject+'/*.mat'
     print location
     f = iter(glob.glob(location))
@@ -78,8 +80,10 @@ def add_feature(subject, location, feature, fidelity = 5):
                 print s.name, fpkl
             mat = scipy.io.loadmat(f.next())
             s.data = mat['data']
-
-            feature(s, mat, fidelity)
+            if fidelity == 0:
+                feature(s, mat)
+            else:
+                feature(s, mat, fidelity)
             s.data=[]
 
             #print s.features
@@ -89,7 +93,22 @@ def add_feature(subject, location, feature, fidelity = 5):
 
 #####################################################################################################################
 
-def channel_variance_ratios(seg, mat, fidelity):
+def channel_downsample(seg, mat, fidelity=100):
+    feat = 'channel_downsample_x'+str(fidelity)
+    seg.features[feat] = []
+    print "len", len (mat['data'][0])
+    print "len", len (mat['data'])
+    resized = misc.imresize(mat['data'], (len (mat['data']) , fidelity) )
+
+    print "len2", len (resized[0])
+    print "len2", len (resized)
+
+    for r in resized:
+        seg.features[feat]+=r
+    print seg.features
+
+
+def channel_variance_ratios(seg, mat, fidelity=5):
     feat = 'channel_variance_ratios_x'+str(fidelity)
     seg.features[feat] = []
     for d in mat['data']:
@@ -102,7 +121,7 @@ def channel_variance_ratios(seg, mat, fidelity):
             seg.features[feat].append(toadd)
     #print seg.features
 
-def channel_FFT_components(seg, mat, fidelity):
+def channel_FFT_components(seg, mat, fidelity=9):
     feat = 'FFT_values_x'+str(fidelity)
     seg.features[feat] = []
     for d in mat['data']:
@@ -117,7 +136,7 @@ def channel_FFT_components(seg, mat, fidelity):
 
 
 
-def total_variance_ratios(seg, mat, fidelity):
+def total_variance_ratios(seg, mat, fidelity=5):
     feat = 'total_variance_ratios_x'+str(fidelity)
     ch_var = []
     for d in mat['data']:
@@ -135,7 +154,7 @@ def total_variance_ratios(seg, mat, fidelity):
     #print seg.features
 
 
-def channel_sigmas(pkl, mat, fidelity):
+def channel_sigmas(pkl, mat, fidelity=5):
     cursig = 0
     for siglevel in ['channel_1sig_times_exceeded_delta', 'channel_2sig_times_exceeded_delta']:
         pkl.features[siglevel] = []
