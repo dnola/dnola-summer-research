@@ -297,7 +297,7 @@ def train_slave(clips):
 
 
                 #READD FOR TIMEOUT
-                clf = result.get(60)
+                clf = result.get(90)
                 #clf.fit(fit, seizure_fit)
 
 
