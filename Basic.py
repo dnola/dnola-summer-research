@@ -369,8 +369,8 @@ def train_master(predictions, seizure_cv, metafeatures):
 
     #calculate_similarities(predictions)
 
-    clf_layer_lin = linear_model.LogisticRegression(penalty = 'l2', C= 1)
-    clf_layer = sklearn.ensemble.GradientBoostingClassifier(learning_rate = .005, n_estimators = 10000)
+    clf_layer_lin = linear_model.LogisticRegression(penalty = 'l2', C= .3)
+    clf_layer = sklearn.ensemble.LogisticRegression(penalty = 'l2', C= 1)
     #clf_layer = MultilayerPerceptron.MultilayerPerceptronManager()
 
     clf_layer_lin.fit(feature_layer, seizure_cv)
