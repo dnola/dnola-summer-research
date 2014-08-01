@@ -573,7 +573,7 @@ def procc(result_q):
         test = cPickle.load(open("SummerResearchData/"+s+'_TEST.pkl', 'rb'))
         train = cPickle.load(open("SummerResearchData/"+s+'.pkl', 'rb'))
         (res, names) = run_analysis(train, test)
-        first_predictions+= res
+        first_predictions+= list(res)
 
 
         redo.append((train, test, s))
