@@ -586,7 +586,7 @@ def procc(result_q):
 
 
 
-
+    final = 0
     # score = 0
     # count = 0
     # for x in TemporaryMetrics.AUC_Mappings:
