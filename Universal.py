@@ -72,7 +72,7 @@ def preprocess_subject(subject):
 
 
 
-            print len(s.features['downsampled_data'])
+            #print len(s.features['downsampled_data'])
 
 
             #print s.features
@@ -97,9 +97,10 @@ def preprocess_subject(subject):
             s.data = []
             train_data.append(s)
 
-    print "wait ", subject
-    #cPickle.dump(train, open(subject+'.pkl', 'wb'))
-    #cPickle.dump(test, open(subject+'_TEST.pkl', 'wb'))
+
+    print "wait ", subject, train_data
+    cPickle.dump(train_data, open("Universal/"+subject+'.pkl', 'wb'))
+    cPickle.dump(target_data, open("Universal/"+subject+'_TEST.pkl', 'wb'))
     print "done ", subject
 
 if __name__ == '__main__':

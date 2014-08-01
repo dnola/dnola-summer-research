@@ -66,7 +66,7 @@ def combine_pickles():
                 print "Failed to set features"
 
             final_pkl.append(seg)
-            print seg.features
+            #print seg.features
         cPickle.dump(final_pkl, open(first[first.rfind('/')+1:], 'wb'))
 
 
