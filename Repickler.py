@@ -104,9 +104,9 @@ def channel_downsample(seg, mat, fidelity=100):
 
     for d in mat['data']:
         toadd = scipy.ndimage.interpolation.zoom(d, .5)
-        print
-        print d
-        print toadd
+        #print
+        #print d
+        #print toadd
         seg.features[feat]+=list(toadd)
 
 
@@ -117,7 +117,7 @@ def channel_downsample(seg, mat, fidelity=100):
     # for r in resized:
     #     seg.features[feat]+=list(r)
 
-    print seg.features
+    #print seg.features
 
 
 def channel_variance_ratios(seg, mat, fidelity=5):
