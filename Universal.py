@@ -6,6 +6,8 @@ import scipy
 import scipy.io
 from math import ceil
 from scipy.ndimage.interpolation import zoom
+import numpy as np
+import itertools
 
 class UniversalSegment:
     def __init__(self):
@@ -23,6 +25,15 @@ for s in SUBJECTS:
 
 print one_hots
 
+one_hots_channel = {}
+it = iter(range(100))
+for s in range(100):
+    next = it.next()
+    one_hots_channel[s] = [1  if x == next else 0 for x in range(100)]
+
+print one_hots_channel
+
+
 def preprocess_subject(subject):
     files = glob.glob('/Users/davidnola/Data/'+ subject+'/*.mat')
     f_iter = iter(files)
@@ -36,66 +47,67 @@ def preprocess_subject(subject):
 
 
     segments = []
+    id = itertools.count()
 
     for f in files:
         print f
         matfile = scipy.io.loadmat(f)
 
-        for i in range(4):
+        data_file = matfile['data']
+        channel_num = itertools.count()
+        for channel in data_file:
+            for i in range(4):
 
-            s = UniversalSegment()
-            data_cp = matfile['data'][:]
-            data = []
-            for d in range(len(data_cp)):
-                size = ceil(len(data_cp[d])/4.0)
-                data.append(data_cp[d][ i*size : (i+1)*size])
+                s = UniversalSegment()
+                size = ceil(len(channel)/4.0)
 
-            #print len(data[0]), len(matfile['data'][0])
-
-            #print data
+                data = channel[ i*size : (i+1)*size]
 
 
+                s.data = data
+                s.id = id.next()
+                s.frequency = matfile['freq']
+                s.name = f[f.rindex('/')+1:]
+                s.features={}
 
-
-            s.data = data
-            s.frequency = matfile['freq']
-            s.name = f[f.rindex('/')+1:]
-            s.features={}
-
-            s.features['downsampled_data'] = []
-
-            scale = 100/float(len(data[0]))
-
-            for d in data:
-                toadd = zoom(d, scale)
-                s.features['downsampled_data']+=list(toadd)
+                scale = 400/float(len(channel))
+                s.features['downsampled_data'] = zoom(data, scale)
 
 
 
-            #print len(s.features['downsampled_data'])
+                s.features['downsampled_data_1st_deriv'] = np.diff(s.features['downsampled_data'])
+                s.features['downsampled_data_2nd_deriv'] = np.diff(s.features['downsampled_data_1st_deriv'])
+                s.features['1_hot_identifier'] = one_hots[subject]
+                s.features['1_hot_channel'] = one_hots_channel[channel_num.next()]
+                #print s.features
 
 
-            #print s.features
 
-            if 'test' in f:
+                s.features['downsampled_data'] = [np.percentile(s.features['downsampled_data'], x * 10) for x in range(11)]
+                s.features['downsampled_data_1st_deriv'] = [np.percentile(s.features['downsampled_data_1st_deriv'], x * 10) for x in range(11)]
+                s.features['downsampled_data_2nd_deriv'] = [np.percentile(s.features['downsampled_data_2nd_deriv'], x * 10) for x in range(11)]
+                #print s.features
+                s.features['all'] = s.features['downsampled_data'] + s.features['downsampled_data_1st_deriv'] + s.features['downsampled_data_2nd_deriv'] + s.features['1_hot_identifier'] + s.features['1_hot_channel']
+                #print s.features['all']
+                if 'test' in f:
+                    #s.calculate_features()
+                    s.data = []
+                    target_data.append(s)
+                    continue
+
+                if 'inter' in f:
+                    s.seizure = False
+                    s.latency = -1
+                else:
+                    s.seizure = True
+                    s.latency = matfile['latency']
+                    #print s.latency
+
+                #s.segment_info()
+
                 #s.calculate_features()
                 s.data = []
-                target_data.append(s)
-                continue
-
-            if 'inter' in f:
-                s.seizure = False
-                s.latency = -1
-            else:
-                s.seizure = True
-                s.latency = matfile['latency']
-                #print s.latency
-
-            #s.segment_info()
-
-            #s.calculate_features()
-            s.data = []
-            train_data.append(s)
+                train_data.append(s)
 
 
     print "wait ", subject, train_data
@@ -103,6 +115,29 @@ def preprocess_subject(subject):
     cPickle.dump(target_data, open("Universal/"+subject+'_TEST.pkl', 'wb'))
     print "done ", subject
 
+def fit_random_forests(subject_list):
+    train_clips = []
+    target_clips = []
+    for s in subject_list:
+        print s
+        train_clips += cPickle.load(open("Universal/"+s+'.pkl', 'rb'))
+        target_clips += cPickle.load(open("Universal/"+s+'_TEST.pkl', 'rb'))
+
+    train = []
+    classes = []
+    ids = []
+    for t in train_clips:
+        train.append(t.features['all'])
+        classes.append(t.seizure)
+        ids.append(t.id)
+
+    print train
+
+
+
+
 if __name__ == '__main__':
-    for subject in SUBJECTS:
-        preprocess_subject(subject)
+    for subject in SUBJECTS[0:1]:
+        #preprocess_subject(subject)
+        pass
+    fit_random_forests(SUBJECTS[0:1])
