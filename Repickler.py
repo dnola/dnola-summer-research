@@ -125,6 +125,7 @@ def channel_downsample_multi(seg, mat, fidelity=100):
 
     chan_count =  len (mat['data'])
     scale = fidelity/float(len(mat['data'][0]))
+    print scale
 
     for d in mat['data']:
         toadd = scipy.ndimage.interpolation.zoom(d, scale)
