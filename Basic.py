@@ -587,14 +587,14 @@ def procc(result_q):
 
 
 
-    score = 0
-    count = 0
-    for x in TemporaryMetrics.AUC_Mappings:
-        score += x[0] * x[1]
-        count += x[0]
-
-    final =  score/float(count)
-    print final
+    # score = 0
+    # count = 0
+    # for x in TemporaryMetrics.AUC_Mappings:
+    #     score += x[0] * x[1]
+    #     count += x[0]
+    #
+    # final =  score/float(count)
+    # print final
 
     #TemporaryMetrics.print_scores()
 
