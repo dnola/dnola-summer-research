@@ -9,6 +9,7 @@ from multiprocessing import *
 import numpy as np
 import itertools
 import scipy
+import scipy.ndimage
 
 SUBJECTS = ['Dog_1','Dog_2','Dog_3','Dog_4','Patient_1','Patient_2','Patient_3','Patient_4','Patient_5','Patient_6','Patient_7','Patient_8']
 
