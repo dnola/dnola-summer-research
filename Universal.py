@@ -126,7 +126,7 @@ def fit_random_forests(subject_list):
 
     (train,classes,ids,names) = format_dataset(train_clips)
 
-    (target,classes_tgt,ids_tgt,names_tgt) = format_dataset(train_clips)
+    (target,classes_tgt,ids_tgt,names_tgt) = format_dataset(target_clips)
 
 
     fit = train[::2]
@@ -135,33 +135,52 @@ def fit_random_forests(subject_list):
     valid = train[1:][::2]
     valid_class = classes[1:][::2]
 
-    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 30)
+    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 200)
     print "Fitting forests..."
     clf.fit(fit, fit_class)
     results =  clf.predict_proba(valid)
+    results_tgt =  clf.predict_proba(target)
     print "SCORE:", clf.score(valid, valid_class)
 
-    (layer_2_features,layer_2_classes,layer_2_ids) = generate_second_layer(results, ids, names, classes)
+    (layer_2_features,layer_2_classes,layer_2_ids) = generate_second_layer(results, ids[1:][::2], names[1:][::2], classes[1:][::2])
+
+
+
+    print names_tgt
+    (layer_2_features_tgt,layer_2_classes_tgt,layer_2_ids_tgt) = generate_second_layer(results_tgt, ids_tgt, names_tgt, classes_tgt)
 
 
     for k in layer_2_features.keys():
         v = layer_2_features[k]
-
         print [layer_2_classes[k]], layer_2_ids[k]
+        layer_2_features[k] = [np.min(v), np.max(v), np.mean(v), np.var(v)] + layer_2_ids[k]
 
-        layer_2_features[k] = [np.min(v), np.max(v), np.mean(v), np.var(v)] + [layer_2_classes[k]] + layer_2_ids[k]
+    print "Target data:"
+    for k in layer_2_features_tgt.keys():
+        print k
+        v = layer_2_features_tgt[k]
+        print [layer_2_classes_tgt[k]], layer_2_ids_tgt[k]
+        layer_2_features_tgt[k] = [np.min(v), np.max(v), np.mean(v), np.var(v)] + layer_2_ids_tgt[k]
 
-        #layer_2_features[next_name][next_id % 4] = r[1]
 
 
     topl = [(layer_2_features[k], layer_2_classes[k]) for k in layer_2_features.keys()]
     topl_feats = [x[0] for x in topl]
     topl_class = [x[1] for x in topl]
-
-    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 30)
+    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 200)
     clf.fit(topl_feats, topl_class)
 
+    topl_tgt = [(layer_2_features_tgt[k], k) for k in layer_2_features_tgt.keys()]
+    topl_feats_tgt = [x[0] for x in topl_tgt]
+    topl_class_names = [x[1] for x in topl_tgt]
+    result = clf.predict_proba(topl_feats_tgt)
+
+    result = [r[1] for r in result]
+
     print layer_2_features
+    toret = zip(topl_class_names, result)
+    print toret
+    return toret
 
 #rmemeber : combine our second layers, and also try (stacking second layers - using his as features)
 def load_dataset(subject_list):
@@ -187,7 +206,11 @@ def format_dataset(train_clips):
     names = []
     for t in train_clips:
         train.append(t.features['all'])
-        classes.append(t.seizure)
+        try:
+            classes.append(t.seizure)
+        except:
+            classes.append(-1)
+
         ids.append(t.features['1_hot_identifier'])
         names.append(t.name)
     return (train,classes,ids,names)
@@ -197,9 +220,9 @@ def generate_second_layer(results, ids, names, classes):
     layer_2_classes = {}
     layer_2_ids = {}
 
-    v_id_it = iter(ids[1:][::2])
-    v_name_it = iter(names[1:][::2])
-    v_class_it = iter(classes[1:][::2])
+    v_id_it = iter(ids)
+    v_name_it = iter(names)
+    v_class_it = iter(classes)
 
     for r in results:
         next_id = v_id_it.next()
@@ -218,9 +241,38 @@ def generate_second_layer(results, ids, names, classes):
 
     return (layer_2_features,layer_2_classes,layer_2_ids)
 
+def write_output(data):
+    output = "clip,seizure,early\n"
+
+    for d in data:
+        output += str(d[0])+","+str(d[1])+","+str(d[1])+"\n"
+
+    print output
+    with file('DistributedSubmitSingle-22.csv', 'w') as f:
+        f.write(output)
+
+def generate_layer_1_dict(subject_list):
+    (train_clips,target_clips) = load_dataset(subject_list)
+
+    (train,classes,ids,names) = format_dataset(train_clips)
+
+    (target,classes_tgt,ids_tgt,names_tgt) = format_dataset(target_clips)
+
+    toret = {}
+    feats = iter(train+target)
+    for n in (names+names_tgt):
+        toret[n] = feats.next()
+
+    return toret
 
 if __name__ == '__main__':
     for subject in SUBJECTS[:]:
         #preprocess_subject(subject)
         pass
-    fit_random_forests(SUBJECTS[0:1])
+    #data = fit_random_forests(SUBJECTS[:])
+    #write_output(data)
+
+    print generate_layer_1_dict(SUBJECTS[0:1])
+
+    print "DONE"
+

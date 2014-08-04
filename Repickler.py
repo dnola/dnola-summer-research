@@ -11,6 +11,8 @@ import itertools
 import scipy
 import scipy.ndimage
 import scipy.ndimage.interpolation
+import Universal
+
 
 SUBJECTS = ['Dog_1','Dog_2','Dog_3','Dog_4','Patient_1','Patient_2','Patient_3','Patient_4','Patient_5','Patient_6','Patient_7','Patient_8']
 
@@ -93,6 +95,16 @@ def add_feature(subject, location, feature, fidelity = 0):
             clips.append(s)
         cPickle.dump(clips, open(fpkl, 'wb'))
 
+
+def add_feature_universal_lower(subject, data):
+    for fpkl in glob.glob(subject+'*.pkl'):
+        clips = [];
+        print "loaded: ", fpkl
+        pkl = cPickle.load(open(fpkl, 'rb'))
+        for s in pkl:
+            s.features['universal_lower'] = data[s.name]
+            clips.append(s)
+        cPickle.dump(clips, open(fpkl, 'wb'))
 
 #####################################################################################################################
 
