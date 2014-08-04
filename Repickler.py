@@ -12,7 +12,7 @@ import scipy
 import scipy.ndimage
 import scipy.ndimage.interpolation
 import Universal
-
+from Universal import UniversalSegment
 
 SUBJECTS = ['Dog_1','Dog_2','Dog_3','Dog_4','Patient_1','Patient_2','Patient_3','Patient_4','Patient_5','Patient_6','Patient_7','Patient_8']
 
@@ -69,7 +69,7 @@ def combine_pickles():
 
             final_pkl.append(seg)
             #print seg.features
-        cPickle.dump(final_pkl, open(first[first.rfind('/')+1:], 'wb'))
+        cPickle.dump(final_pkl, open(first[first.rfind('/')+1:], 'wb'),-1)
 
 
 def add_feature(subject, location, feature, fidelity = 0):
@@ -93,7 +93,7 @@ def add_feature(subject, location, feature, fidelity = 0):
 
             #print s.features
             clips.append(s)
-        cPickle.dump(clips, open(fpkl, 'wb'))
+        cPickle.dump(clips, open(fpkl, 'wb'),-1)
 
 
 def add_feature_universal_lower(subject, data):
@@ -105,7 +105,7 @@ def add_feature_universal_lower(subject, data):
             s.features['universal_lower'] = data[s.name]
             clips.append(s)
             print s.features
-        cPickle.dump(clips, open(fpkl, 'wb'))
+        cPickle.dump(clips, open(fpkl, 'wb'),-1)
 
 #####################################################################################################################
 
@@ -251,7 +251,7 @@ def add_total_channel_variance(subject, location):
             print s.features
             s.data=[]
             clips.append(s)
-        cPickle.dump(clips, open(fpkl, 'wb'))
+        cPickle.dump(clips, open(fpkl, 'wb'),-1)
 
 def add_channel_variance_change(subject, location):
 
@@ -286,7 +286,7 @@ def add_channel_variance_change(subject, location):
             print s.features
             s.data=[]
             clips.append(s)
-        cPickle.dump(clips, open(fpkl, 'wb'))
+        cPickle.dump(clips, open(fpkl, 'wb'),-1)
 
 #new sig : just 1 and 2 levels, do first half, second half, and deltas
 #new varsplit: 4 segments, 3 deltas
@@ -330,7 +330,7 @@ def pickle_dataset(subject, location):
         s.data = []
         clips.append(s)
     print "cleared"
-    cPickle.dump(clips, open(subject+'.pkl', 'wb'))
+    cPickle.dump(clips, open(subject+'.pkl', 'wb'),-1)
     for t in test_data:
         if 'ictal' in t.name:
             print "BAD CLIP IN TEST DATA"
@@ -340,7 +340,7 @@ def pickle_dataset(subject, location):
             print "BAD CLIP IN TRAIN DATA"
             exit(1)
 
-    cPickle.dump(test_data, open(subject+'_TEST.pkl', 'wb'))
+    cPickle.dump(test_data, open(subject+'_TEST.pkl', 'wb'),-1)
 
 def train_op(clip, mat, f):
     add_time_variance_feature(clip, mat)
@@ -419,8 +419,8 @@ def kickoff_subject(subject):
 
 
     print "wait ", subject
-    cPickle.dump(train, open(subject+'.pkl', 'wb'))
-    cPickle.dump(test, open(subject+'_TEST.pkl', 'wb'))
+    cPickle.dump(train, open(subject+'.pkl', 'wb'),-1)
+    cPickle.dump(test, open(subject+'_TEST.pkl', 'wb'),-1)
     print "done ", subject
 
 

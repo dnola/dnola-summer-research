@@ -90,7 +90,9 @@ def preprocess_subject(subject):
                 s.features['downsampled_data_1st_deriv'] = [np.percentile(s.features['downsampled_data_1st_deriv'], x * 10) for x in range(11)]
                 s.features['downsampled_data_2nd_deriv'] = [np.percentile(s.features['downsampled_data_2nd_deriv'], x * 10) for x in range(11)]
                 #print s.features
-                s.features['all'] = s.features['downsampled_data'] + s.features['downsampled_data_1st_deriv'] + s.features['downsampled_data_2nd_deriv'] + s.features['1_hot_identifier'] + s.features['1_hot_channel']
+                temp = s.features['downsampled_data'] + s.features['downsampled_data_1st_deriv'] + s.features['downsampled_data_2nd_deriv'] + s.features['1_hot_identifier'] + s.features['1_hot_channel']
+                s.features = {}
+                s.features['all'] = temp
                 #print s.features['all']
                 if 'test' in f:
                     #s.calculate_features()
@@ -114,9 +116,9 @@ def preprocess_subject(subject):
 
 
     print "wait ", subject
-    cPickle.dump(train_data, open("/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+subject+'.pkl', 'wb'))
+    cPickle.dump(train_data, open("/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+subject+'.pkl', 'wb'), -1)
     print "finished train"
-    cPickle.dump(target_data, open("/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+subject+'_TEST.pkl', 'wb'))
+    cPickle.dump(target_data, open("/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+subject+'_TEST.pkl', 'wb'), -1)
     print "done ", subject
 
 def fit_random_forests(subject_list):
@@ -135,7 +137,7 @@ def fit_random_forests(subject_list):
     valid = train[1:][::2]
     valid_class = classes[1:][::2]
 
-    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 200)
+    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 105)
     print "Fitting forests..."
     clf.fit(fit, fit_class)
     results =  clf.predict_proba(valid)
@@ -167,7 +169,7 @@ def fit_random_forests(subject_list):
     topl = [(layer_2_features[k], layer_2_classes[k]) for k in layer_2_features.keys()]
     topl_feats = [x[0] for x in topl]
     topl_class = [x[1] for x in topl]
-    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 200)
+    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 105)
     clf.fit(topl_feats, topl_class)
 
     topl_tgt = [(layer_2_features_tgt[k], k) for k in layer_2_features_tgt.keys()]
@@ -267,12 +269,12 @@ def generate_layer_1_dict(subject_list):
 
 if __name__ == '__main__':
     for subject in SUBJECTS[:]:
-        #preprocess_subject(subject)
+        preprocess_subject(subject)
         pass
     #data = fit_random_forests(SUBJECTS[:])
     #write_output(data)
 
-    print generate_layer_1_dict(SUBJECTS[0:1])
+    #print generate_layer_1_dict(SUBJECTS[0:1])
 
     print "DONE"
 
