@@ -114,9 +114,9 @@ def preprocess_subject(subject):
 
 
     print "wait ", subject
-    cPickle.dump(train_data, open("Universal/"+subject+'.pkl', 'wb'))
+    cPickle.dump(train_data, open("/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+subject+'.pkl', 'wb'))
     print "finished train"
-    cPickle.dump(target_data, open("Universal/"+subject+'_TEST.pkl', 'wb'))
+    cPickle.dump(target_data, open("/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+subject+'_TEST.pkl', 'wb'))
     print "done ", subject
 
 def fit_random_forests(subject_list):
