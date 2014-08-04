@@ -186,6 +186,7 @@ def fit_random_forests(subject_list):
 
 #rmemeber : combine our second layers, and also try (stacking second layers - using his as features)
 def load_dataset(subject_list):
+    print "loading datasets"
     train_clips = []
     target_clips = []
     for s in subject_list:
@@ -254,6 +255,7 @@ def write_output(data):
         f.write(output)
 
 def generate_layer_1_dict(subject_list):
+    print "generating dict"
     (train_clips,target_clips) = load_dataset(subject_list)
 
     (train,classes,ids,names) = format_dataset(train_clips)

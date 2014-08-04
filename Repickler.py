@@ -99,7 +99,7 @@ def add_feature(subject, location, feature, fidelity = 0):
 def add_feature_universal_lower(subject, data):
     for fpkl in glob.glob(subject+'*.pkl'):
         clips = [];
-        print "loaded: ", fpkl
+        print "loading: ", fpkl
         pkl = cPickle.load(open(fpkl, 'rb'))
         for s in pkl:
             s.features['universal_lower'] = data[s.name]
