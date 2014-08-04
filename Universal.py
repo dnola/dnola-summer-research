@@ -188,9 +188,9 @@ def load_dataset(subject_list):
     target_clips = []
     for s in subject_list:
         print s
-        train_clips += cPickle.load(open(s+'.pkl', 'rb'))
+        train_clips += cPickle.load(open("/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+s+'.pkl', 'rb'))
         print "Finished loading train"
-        target_clips += cPickle.load(open(s+'_TEST.pkl', 'rb'))
+        target_clips += cPickle.load(open("/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+s+'_TEST.pkl', 'rb'))
         print "Finished loading target"
 
 
