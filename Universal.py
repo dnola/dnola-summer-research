@@ -77,20 +77,14 @@ def preprocess_subject(subject):
                 s.name = f[f.rindex('/')+1:]
                 s.features={}
 
-
-
                 scale = 400/float(len(channel))
                 s.features['downsampled_data'] = zoom(data, scale)
-
-
 
                 s.features['downsampled_data_1st_deriv'] = np.diff(s.features['downsampled_data'])
                 s.features['downsampled_data_2nd_deriv'] = np.diff(s.features['downsampled_data_1st_deriv'])
                 s.features['1_hot_identifier'] = one_hots[subject]
                 s.features['1_hot_channel'] = one_hots_channel[cur_num]
                 #print s.features
-
-
 
                 s.features['downsampled_data'] = [np.percentile(s.features['downsampled_data'], x * 10) for x in range(11)]
                 s.features['downsampled_data_1st_deriv'] = [np.percentile(s.features['downsampled_data_1st_deriv'], x * 10) for x in range(11)]
@@ -126,28 +120,14 @@ def preprocess_subject(subject):
     print "done ", subject
 
 def fit_random_forests(subject_list):
-    train_clips = []
-    target_clips = []
-    for s in subject_list:
-        print s
-        train_clips += cPickle.load(open("Universal/"+s+'.pkl', 'rb'))
-        print "Finished loading train"
-        target_clips += cPickle.load(open("Universal/"+s+'_TEST.pkl', 'rb'))
-        print "Finished loading target"
 
 
-    shuffle(train_clips)
-    shuffle(target_clips)
+    (train_clips,target_clips) = load_dataset(subject_list)
 
-    train = []
-    classes = []
-    ids = []
-    for t in train_clips:
-        train.append(t.features['all'])
-        classes.append(t.seizure)
-        ids.append(t.name)
+    (train,classes,ids,names) = format_dataset(train_clips)
 
-    #print train
+    (target,classes_tgt,ids_tgt,names_tgt) = format_dataset(train_clips)
+
 
     fit = train[::2]
     fit_class = classes[::2]
@@ -161,19 +141,82 @@ def fit_random_forests(subject_list):
     results =  clf.predict_proba(valid)
     print "SCORE:", clf.score(valid, valid_class)
 
+    (layer_2_features,layer_2_classes,layer_2_ids) = generate_second_layer(results, ids, names, classes)
+
+
+    for k in layer_2_features.keys():
+        v = layer_2_features[k]
+
+        print [layer_2_classes[k]], layer_2_ids[k]
+
+        layer_2_features[k] = [np.min(v), np.max(v), np.mean(v), np.var(v)] + [layer_2_classes[k]] + layer_2_ids[k]
+
+        #layer_2_features[next_name][next_id % 4] = r[1]
+
+
+    topl = [(layer_2_features[k], layer_2_classes[k]) for k in layer_2_features.keys()]
+    topl_feats = [x[0] for x in topl]
+    topl_class = [x[1] for x in topl]
+
+    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 30)
+    clf.fit(topl_feats, topl_class)
+
+    print layer_2_features
+
+#rmemeber : combine our second layers, and also try (stacking second layers - using his as features)
+def load_dataset(subject_list):
+    train_clips = []
+    target_clips = []
+    for s in subject_list:
+        print s
+        train_clips += cPickle.load(open("Universal/"+s+'.pkl', 'rb'))
+        print "Finished loading train"
+        target_clips += cPickle.load(open("Universal/"+s+'_TEST.pkl', 'rb'))
+        print "Finished loading target"
+
+
+    shuffle(train_clips)
+    shuffle(target_clips)
+
+    return (train_clips,target_clips)
+
+def format_dataset(train_clips):
+    train = []
+    classes = []
+    ids = []
+    names = []
+    for t in train_clips:
+        train.append(t.features['all'])
+        classes.append(t.seizure)
+        ids.append(t.features['1_hot_identifier'])
+        names.append(t.name)
+    return (train,classes,ids,names)
+
+def generate_second_layer(results, ids, names, classes):
     layer_2_features = {}
+    layer_2_classes = {}
+    layer_2_ids = {}
 
-    v_it = iter(ids[1:][::2])
+    v_id_it = iter(ids[1:][::2])
+    v_name_it = iter(names[1:][::2])
+    v_class_it = iter(classes[1:][::2])
+
     for r in results:
-        next = v_it.next()
-        print next, r
+        next_id = v_id_it.next()
+        next_name = v_name_it.next()
+        next_class = v_class_it.next()
+        print next_id, next_name,  r
+        if not layer_2_features.has_key(next_name):
+            layer_2_features[next_name] = []
 
-        #if not layer_2_features.has_key(next):
-        #    layer_2_features[next] =
+        layer_2_features[next_name].append(r[1])
+        if layer_2_classes.has_key(next_name):
+            assert layer_2_classes[next_name] == next_class
 
+        layer_2_classes[next_name] = next_class
+        layer_2_ids[next_name] = next_id
 
-
-
+    return (layer_2_features,layer_2_classes,layer_2_ids)
 
 
 if __name__ == '__main__':
