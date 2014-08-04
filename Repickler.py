@@ -104,6 +104,7 @@ def add_feature_universal_lower(subject, data):
         for s in pkl:
             s.features['universal_lower'] = data[s.name]
             clips.append(s)
+            print s.features
         cPickle.dump(clips, open(fpkl, 'wb'))
 
 #####################################################################################################################
