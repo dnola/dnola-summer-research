@@ -13,7 +13,13 @@ import sklearn
 import sklearn.ensemble
 from operator import itemgetter
 from random import shuffle
+import random
 import sys
+
+
+SEED = 3737
+
+random.seed(SEED)
 
 class UniversalSegment:
     def __init__(self):
@@ -132,7 +138,7 @@ def preprocess_subject(subject):
 def fit_random_forests(subject_list):
 
 
-    (train_clips,target_clips) = load_dataset_joblib(subject_list)
+    (train_clips,target_clips) = load_dataset_pickle(subject_list)
 
     (train,classes,ids_class,names, uids) = format_dataset(train_clips)
 
@@ -145,7 +151,7 @@ def fit_random_forests(subject_list):
     valid = train[1:][::2]
     valid_class = classes[1:][::2]
 
-    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 120, n_jobs = 8, verbose = 1)
+    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 120, n_jobs = 8, verbose = 1, random_state=SEED)
     print "Fitting forests..."
     clf.fit(fit, fit_class)
     results =  clf.predict_proba(valid)
@@ -160,13 +166,13 @@ def fit_random_forests(subject_list):
     (layer_2_features_tgt,layer_2_classes_tgt,layer_2_ids_tgt, layer_2_uids_tgt) = generate_second_layer(results_tgt, ids_class_tgt, names_tgt, classes_tgt, uids_tgt)
 
 
-    for k in layer_2_features.keys():
+    for k in sorted(layer_2_features.keys()):
         v = layer_2_features[k]
         print [layer_2_classes[k]], layer_2_ids[k]
         layer_2_features[k] = [np.min(v), np.max(v), np.mean(v), np.var(v)] + layer_2_ids[k]
 
     print "Target data:"
-    for k in layer_2_features_tgt.keys():
+    for k in sorted(layer_2_features_tgt.keys()):
         print k
         v = layer_2_features_tgt[k]
         print [layer_2_classes_tgt[k]], layer_2_ids_tgt[k]
@@ -174,13 +180,13 @@ def fit_random_forests(subject_list):
 
 
 
-    topl = [(layer_2_features[k], layer_2_classes[k]) for k in layer_2_features.keys()]
+    topl = [(layer_2_features[k], layer_2_classes[k]) for k in sorted(layer_2_features.keys())]
     topl_feats = [x[0] for x in topl]
     topl_class = [x[1] for x in topl]
-    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 120, n_jobs = 8, verbose = 1)
+    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 120, n_jobs = 8, verbose = 1, random_state=SEED)
     clf.fit(topl_feats, topl_class)
 
-    topl_tgt = [(layer_2_features_tgt[k], k) for k in layer_2_features_tgt.keys()]
+    topl_tgt = [(layer_2_features_tgt[k], k) for k in sorted(layer_2_features_tgt.keys())]
     topl_feats_tgt = [x[0] for x in topl_tgt]
     topl_class_names = [x[1] for x in topl_tgt]
     result = clf.predict_proba(topl_feats_tgt)
@@ -320,7 +326,7 @@ def generate_layer_1_dict(subject_list):
     print "sorting combined features"
     sys.stdout.flush()
 
-    for k in toret.keys():
+    for k in sorted(toret.keys()):
         temp = toret[k]
         #print temp
         sorted(temp, key=itemgetter(1))
@@ -349,7 +355,7 @@ def generate_layer_2_dict(subject_list):
     valid = train[1:][::2]
     valid_class = classes[1:][::2]
 
-    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 120, n_jobs = 8, verbose = 1)
+    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 120, n_jobs = 8, verbose = 1, random_state=SEED)
     print "Fitting forests..."
     clf.fit(fit, fit_class)
     results =  clf.predict_proba(valid)
@@ -364,13 +370,13 @@ def generate_layer_2_dict(subject_list):
     (layer_2_features_tgt,layer_2_classes_tgt,layer_2_ids_tgt, layer_2_uids_tgt) = generate_second_layer(results_tgt, ids_class_tgt, names_tgt, classes_tgt, uids_tgt)
 
 
-    for k in layer_2_features.keys():
+    for k in sorted(layer_2_features.keys()):
         v = layer_2_features[k]
         print [layer_2_classes[k]], layer_2_ids[k]
         layer_2_features[k] = [np.min(v), np.max(v), np.mean(v), np.var(v)] + layer_2_ids[k]
 
     print "Target data:"
-    for k in layer_2_features_tgt.keys():
+    for k in sorted(layer_2_features_tgt.keys()):
         print k
         v = layer_2_features_tgt[k]
         print [layer_2_classes_tgt[k]], layer_2_ids_tgt[k]
@@ -380,11 +386,11 @@ def generate_layer_2_dict(subject_list):
 
 if __name__ == '__main__':
     #     pass
-    #data = fit_random_forests(SUBJECTS[:2])
-    #write_output(data)
+    data = fit_random_forests(SUBJECTS[:2])
+    write_output(data)
 
     #print generate_layer_1_dict(SUBJECTS[0:1])
-    print generate_layer_2_dict(SUBJECTS[0:1])
+    #print generate_layer_2_dict(SUBJECTS[0:1])
 
     print "DONE"
 
