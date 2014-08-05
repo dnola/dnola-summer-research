@@ -25,6 +25,9 @@ from sklearn import ensemble
 import operator
 import MultilayerPerceptron
 
+SEED = 3737
+
+random.seed(SEED)
 
 class timeout:
     def __init__(self, seconds=1, error_message='Timeout'):
@@ -235,13 +238,13 @@ def append_predictions(preds):
 def setup_validation_data(clips):
     seizure_fit = []
     seizure_cv = []
-    for c in clips[:len(clips)/2]:
+    for c in clips[::2]:
         if c.seizure:
             seizure_fit.append(1.0)
         else:
             seizure_fit.append(0.0)
 
-    for c in clips[len(clips)/2:]:
+    for c in clips[1::2]:
         if c.seizure:
             seizure_cv.append(1.0)
         else:
@@ -267,14 +270,15 @@ def train_slave(clips):
     metafeatures = []
 
 
-    print clips[0].features.keys()
-    for feat in clips[0].features.keys():
+    print sorted(clips[0].features.keys())
+    for feat in sorted(clips[0].features.keys()):
 
         algos = algorithms[:]
 
 
         for a in algos:
             print feat, a[0].__name__, a[1]
+            a[1]['random_state'] = SEED
             clf = a[0](**a[1])
 
 
@@ -283,10 +287,10 @@ def train_slave(clips):
 
             fit = []
             cv = []
-            for c in clips[:len(clips)/2]:
+            for c in clips[::2]:
                 fit.append(c.features[feat])
 
-            for c in clips[len(clips)/2:]:
+            for c in clips[1::2]:
                 cv.append(c.features[feat])
 
 
@@ -297,8 +301,8 @@ def train_slave(clips):
 
 
                 #READD FOR TIMEOUT
-                clf = result.get(90)
-                #clf.fit(fit, seizure_fit)
+                #clf = result.get(90)
+                clf.fit(fit, seizure_fit)
 
 
                 if clf.score(cv, seizure_cv) < .60:
@@ -330,8 +334,10 @@ def train_slave(clips):
 
                 #TemporaryMetrics.model_short.append(("BROKEN Model:%s ;" % a[0].__name__) + str(a[1]))
                 print "TIMED OUT"
+                #exit()
             except Exception as e:
                 print "OTHER ERROR OCCURRED: ", e.message
+
 
 
     print "DONE training slave"
@@ -369,8 +375,8 @@ def train_master(predictions, seizure_cv, metafeatures):
 
     #calculate_similarities(predictions)
 
-    clf_layer_lin = linear_model.LogisticRegression(penalty = 'l2', C= .3)
-    clf_layer = linear_model.LogisticRegression(penalty = 'l2', C= 1)
+    clf_layer_lin = linear_model.LogisticRegression(penalty = 'l2', C= .3, random_state=SEED)
+    clf_layer = linear_model.LogisticRegression(penalty = 'l2', C= 1, random_state=SEED)
     #clf_layer = MultilayerPerceptron.MultilayerPerceptronManager()
 
     clf_layer_lin.fit(feature_layer, seizure_cv)
@@ -422,7 +428,8 @@ def generate_test_layer(test_data, models, features, metafeatures):
     #             toadd.append(c.features[k])
     #         formatted_data.append(toadd)
 
-    for feat, mod in metafeatures:
+    for feat in sorted(metafeatures.keys()):
+        mod = metafeatures[feat]
         toadd = []
         for c in test_data:
             toadd.append(c.features[feat])

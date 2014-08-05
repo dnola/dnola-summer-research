@@ -293,7 +293,7 @@ def write_output(data):
         output += str(d[0])+","+str(d[1])+","+str(d[1])+"\n"
 
     #print output
-    with file('DistributedSubmitSingle-23.csv', 'w') as f:
+    with file('DistributedSubmitSingle-23-c2.csv', 'w') as f:
         f.write(output)
 
 def generate_layer_1_dict(subject_list):
@@ -377,7 +377,7 @@ def generate_layer_2_dict(subject_list):
 
     print "Target data:"
     for k in sorted(layer_2_features_tgt.keys()):
-        print k
+        #print k
         v = layer_2_features_tgt[k]
         #print [layer_2_classes_tgt[k]], layer_2_ids_tgt[k]
         layer_2_features_tgt[k] = [np.min(v), np.max(v), np.mean(v), np.var(v)] + layer_2_ids_tgt[k]
