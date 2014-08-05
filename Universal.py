@@ -204,7 +204,7 @@ def load_dataset_joblib(subject_list):
     train_clips = []
     target_clips = []
     for s in subject_list:
-        print s
+        #print s
         train_clips += joblib.load("/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+s+'.jpkl')
         print "Finished loading train"
         target_clips += joblib.load("/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+s+'_TEST.jpkl')
@@ -222,7 +222,7 @@ def load_dataset_pickle(subject_list):
     train_clips = []
     target_clips = []
     for s in subject_list:
-        print s
+        #print s
         sys.stdout.flush()
         train_clips += cPickle.load(open("/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+s+'.pkl', 'rb'))
         print "Finished loading train"
@@ -372,14 +372,14 @@ def generate_layer_2_dict(subject_list):
 
     for k in sorted(layer_2_features.keys()):
         v = layer_2_features[k]
-        print [layer_2_classes[k]], layer_2_ids[k]
+        #print [layer_2_classes[k]], layer_2_ids[k]
         layer_2_features[k] = [np.min(v), np.max(v), np.mean(v), np.var(v)] + layer_2_ids[k]
 
     print "Target data:"
     for k in sorted(layer_2_features_tgt.keys()):
         print k
         v = layer_2_features_tgt[k]
-        print [layer_2_classes_tgt[k]], layer_2_ids_tgt[k]
+        #print [layer_2_classes_tgt[k]], layer_2_ids_tgt[k]
         layer_2_features_tgt[k] = [np.min(v), np.max(v), np.mean(v), np.var(v)] + layer_2_ids_tgt[k]
 
     return layer_2_features_tgt
