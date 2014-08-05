@@ -151,7 +151,7 @@ def fit_random_forests(subject_list):
     valid = train[1:][::2]
     valid_class = classes[1:][::2]
 
-    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 120, n_jobs = 8, verbose = 1, random_state=SEED)
+    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 400, n_jobs = 8, verbose = 1, random_state=SEED)
     print "Fitting forests..."
     clf.fit(fit, fit_class)
     results =  clf.predict_proba(valid)
@@ -183,7 +183,7 @@ def fit_random_forests(subject_list):
     topl = [(layer_2_features[k], layer_2_classes[k]) for k in sorted(layer_2_features.keys())]
     topl_feats = [x[0] for x in topl]
     topl_class = [x[1] for x in topl]
-    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 120, n_jobs = 8, verbose = 1, random_state=SEED)
+    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 400, n_jobs = 8, verbose = 1, random_state=SEED)
     clf.fit(topl_feats, topl_class)
 
     topl_tgt = [(layer_2_features_tgt[k], k) for k in sorted(layer_2_features_tgt.keys())]
@@ -382,11 +382,11 @@ def generate_layer_2_dict(subject_list):
         #print [layer_2_classes_tgt[k]], layer_2_ids_tgt[k]
         layer_2_features_tgt[k] = [np.min(v), np.max(v), np.mean(v), np.var(v)] + layer_2_ids_tgt[k]
 
-    return layer_2_features_tgt
+    return layer_2_features_tgt # PROBLEM: We need a dict of EVERYTHING on this layer - no wait - should skip ones we dont have
 
 if __name__ == '__main__':
     #     pass
-    data = fit_random_forests(SUBJECTS[:2])
+    data = fit_random_forests(SUBJECTS[:])
     write_output(data)
 
     #print generate_layer_1_dict(SUBJECTS[0:1])
