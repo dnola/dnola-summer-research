@@ -440,8 +440,7 @@ def generate_test_layer(test_data, models, features, metafeatures):
     #             toadd.append(c.features[k])
     #         formatted_data.append(toadd)
 
-    for feat in sorted(metafeatures.keys()):
-        mod = metafeatures[feat]
+    for feat,mod in metafeatures:
         toadd = []
         for c in test_data:
             toadd.append(c.features[feat])
