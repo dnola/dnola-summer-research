@@ -8,10 +8,10 @@ from math import ceil
 from scipy.ndimage.interpolation import zoom
 import numpy as np
 import itertools
-
+from sklearn.externals import joblib
 import sklearn
 import sklearn.ensemble
-
+from operator import itemgetter
 from random import shuffle
 
 class UniversalSegment:
@@ -47,11 +47,11 @@ def preprocess_subject(subject):
 
     #test = cPickle.load(open(subject+'_TEST.pkl', 'rb'))
     #train = cPickle.load(open(subject+'.pkl', 'rb'))
-    target_data = []
-    train_data = []
+    target_data = np.array([])
+    train_data = np.array([])
 
 
-    segments = []
+    segments = np.array([])
     id = itertools.count()
 
     for f in files:
@@ -91,13 +91,16 @@ def preprocess_subject(subject):
                 s.features['downsampled_data_2nd_deriv'] = [np.percentile(s.features['downsampled_data_2nd_deriv'], x * 10) for x in range(11)]
                 #print s.features
                 temp = s.features['downsampled_data'] + s.features['downsampled_data_1st_deriv'] + s.features['downsampled_data_2nd_deriv'] + s.features['1_hot_identifier'] + s.features['1_hot_channel']
+                temp2 = s.features['1_hot_identifier']
+
                 s.features = {}
-                s.features['all'] = temp
+                s.features['all'] = np.array(temp)
+                s.features['1_hot_identifier'] =  np.array(temp2)
                 #print s.features['all']
                 if 'test' in f:
                     #s.calculate_features()
                     s.data = []
-                    target_data.append(s)
+                    np.append(target_data, s)
                     continue
 
                 if 'inter' in f:
@@ -111,24 +114,28 @@ def preprocess_subject(subject):
                 #s.segment_info()
 
                 #s.calculate_features()
-                s.data = []
-                train_data.append(s)
+                s.data = np.array([])
+                np.append(train_data, s)
 
 
+    for t in train_data:
+        print t.features
     print "wait ", subject
-    cPickle.dump(train_data, open("/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+subject+'.pkl', 'wb'), -1)
+    #cPickle.dump(train_data, open("/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+subject+'.jpkl', 'wb'),compress = 0, cache_size=1000)
+    joblib.dump(train_data, "/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+subject+'.jpkl',compress = 0, cache_size=1000)
     print "finished train"
-    cPickle.dump(target_data, open("/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+subject+'_TEST.pkl', 'wb'), -1)
+    #cPickle.dump(target_data, open("/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+subject+'_TEST.jpkl', 'wb'), compress = 0, cache_size=1000)
+    joblib.dump(target_data, "/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+subject+'_TEST.jpkl', compress = 0, cache_size=1000)
     print "done ", subject
 
 def fit_random_forests(subject_list):
 
 
-    (train_clips,target_clips) = load_dataset(subject_list)
+    (train_clips,target_clips) = load_dataset_joblib(subject_list)
 
-    (train,classes,ids,names) = format_dataset(train_clips)
+    (train,classes,ids_class,names, uids) = format_dataset(train_clips)
 
-    (target,classes_tgt,ids_tgt,names_tgt) = format_dataset(target_clips)
+    (target,classes_tgt,ids_class_tgt,names_tgt, uids_tgt) = format_dataset(target_clips)
 
 
     fit = train[::2]
@@ -137,19 +144,19 @@ def fit_random_forests(subject_list):
     valid = train[1:][::2]
     valid_class = classes[1:][::2]
 
-    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 105)
+    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 120, n_jobs = 8, verbose = 1)
     print "Fitting forests..."
     clf.fit(fit, fit_class)
     results =  clf.predict_proba(valid)
     results_tgt =  clf.predict_proba(target)
     print "SCORE:", clf.score(valid, valid_class)
 
-    (layer_2_features,layer_2_classes,layer_2_ids) = generate_second_layer(results, ids[1:][::2], names[1:][::2], classes[1:][::2])
+    (layer_2_features,layer_2_classes,layer_2_ids, layer_2_uids) = generate_second_layer(results, ids_class[1:][::2], names[1:][::2], classes[1:][::2], uids[1:][::2])
 
 
 
     print names_tgt
-    (layer_2_features_tgt,layer_2_classes_tgt,layer_2_ids_tgt) = generate_second_layer(results_tgt, ids_tgt, names_tgt, classes_tgt)
+    (layer_2_features_tgt,layer_2_classes_tgt,layer_2_ids_tgt, layer_2_uids_tgt) = generate_second_layer(results_tgt, ids_class_tgt, names_tgt, classes_tgt, uids_tgt)
 
 
     for k in layer_2_features.keys():
@@ -169,7 +176,7 @@ def fit_random_forests(subject_list):
     topl = [(layer_2_features[k], layer_2_classes[k]) for k in layer_2_features.keys()]
     topl_feats = [x[0] for x in topl]
     topl_class = [x[1] for x in topl]
-    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 105)
+    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 120, n_jobs = 8, verbose = 1)
     clf.fit(topl_feats, topl_class)
 
     topl_tgt = [(layer_2_features_tgt[k], k) for k in layer_2_features_tgt.keys()]
@@ -185,7 +192,24 @@ def fit_random_forests(subject_list):
     return toret
 
 #rmemeber : combine our second layers, and also try (stacking second layers - using his as features)
-def load_dataset(subject_list):
+def load_dataset_joblib(subject_list):
+    print "loading datasets"
+    train_clips = []
+    target_clips = []
+    for s in subject_list:
+        print s
+        train_clips += joblib.load("/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+s+'.jpkl')
+        print "Finished loading train"
+        target_clips += joblib.load("/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+s+'_TEST.jpkl')
+        print "Finished loading target"
+
+
+    shuffle(train_clips)
+    shuffle(target_clips)
+
+    return (train_clips,target_clips)
+
+def load_dataset_pickle(subject_list):
     print "loading datasets"
     train_clips = []
     target_clips = []
@@ -202,10 +226,12 @@ def load_dataset(subject_list):
 
     return (train_clips,target_clips)
 
+
 def format_dataset(train_clips):
     train = []
     classes = []
-    ids = []
+    ids_class = []
+    uids = []
     names = []
     for t in train_clips:
         train.append(t.features['all'])
@@ -214,21 +240,25 @@ def format_dataset(train_clips):
         except:
             classes.append(-1)
 
-        ids.append(t.features['1_hot_identifier'])
+        ids_class.append(t.features['1_hot_identifier'])
         names.append(t.name)
-    return (train,classes,ids,names)
+        uids.append(t.id)
+    return (train,classes,ids_class,names,uids)
 
-def generate_second_layer(results, ids, names, classes):
+def generate_second_layer(results, ids, names, classes, uids):
     layer_2_features = {}
     layer_2_classes = {}
     layer_2_ids = {}
+    layer_2_uids = {}
 
     v_id_it = iter(ids)
+    v_uid_it = iter(uids)
     v_name_it = iter(names)
     v_class_it = iter(classes)
 
     for r in results:
         next_id = v_id_it.next()
+        next_uid = v_uid_it.next()
         next_name = v_name_it.next()
         next_class = v_class_it.next()
         print next_id, next_name,  r
@@ -241,8 +271,9 @@ def generate_second_layer(results, ids, names, classes):
 
         layer_2_classes[next_name] = next_class
         layer_2_ids[next_name] = next_id
+        layer_2_uids[next_name] = next_uid
 
-    return (layer_2_features,layer_2_classes,layer_2_ids)
+    return (layer_2_features,layer_2_classes,layer_2_ids, layer_2_uids)
 
 def write_output(data):
     output = "clip,seizure,early\n"
@@ -250,30 +281,48 @@ def write_output(data):
     for d in data:
         output += str(d[0])+","+str(d[1])+","+str(d[1])+"\n"
 
-    print output
-    with file('DistributedSubmitSingle-22.csv', 'w') as f:
+    #print output
+    with file('DistributedSubmitSingle-23.csv', 'w') as f:
         f.write(output)
 
 def generate_layer_1_dict(subject_list):
     print "generating dict"
-    (train_clips,target_clips) = load_dataset(subject_list)
+    (train_clips,target_clips) = load_dataset_pickle(subject_list)
 
-    (train,classes,ids,names) = format_dataset(train_clips)
+    (train,classes,ids,names, uids) = format_dataset(train_clips)
 
-    (target,classes_tgt,ids_tgt,names_tgt) = format_dataset(target_clips)
+    (target,classes_tgt,ids_tgt,names_tgt, uids_tgt) = format_dataset(target_clips)
 
     toret = {}
     feats = iter(train+target)
+    ids = iter(ids+ids_tgt)
+    uids = iter(uids + uids_tgt)
     for n in (names+names_tgt):
-        toret[n] = feats.next()
+        f = feats.next()
+        uid = uids.next()
+        try:
+            #print n, toret[n]
+            toret[n].append((f,uid))
 
+        except BaseException as e:
+            #print e.msg
+            toret[n] = [(f,uid)]
+
+
+    for k in toret.keys():
+        temp = toret[k]
+        #print temp
+        sorted(temp, key=itemgetter(1))
+        toret[k] = []
+        for t in temp:
+            toret[k]+=t[0]
+        print len(toret[k])
+    #print toret
     return toret
 
 if __name__ == '__main__':
-    for subject in SUBJECTS[:]:
-        preprocess_subject(subject)
-        pass
-    #data = fit_random_forests(SUBJECTS[:])
+    #     pass
+    #data = fit_random_forests(SUBJECTS[:2])
     #write_output(data)
 
     #print generate_layer_1_dict(SUBJECTS[0:1])
