@@ -96,16 +96,18 @@ def add_feature(subject, location, feature, fidelity = 0):
         cPickle.dump(clips, open(fpkl, 'wb'),-1)
 
 
-def add_feature_universal_lower(subject, data):
+def add_feature_universal(subject, data):
     for fpkl in glob.glob(subject+'*.pkl'):
         clips = [];
         print "loading: ", fpkl
         pkl = cPickle.load(open(fpkl, 'rb'))
+        sys.stdout.flush()
         for s in pkl:
             s.features['universal_lower'] = data[s.name]
             clips.append(s)
             print s.features
         cPickle.dump(clips, open(fpkl, 'wb'),-1)
+
 
 #####################################################################################################################
 

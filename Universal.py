@@ -13,6 +13,7 @@ import sklearn
 import sklearn.ensemble
 from operator import itemgetter
 from random import shuffle
+import sys
 
 class UniversalSegment:
     def __init__(self):
@@ -287,6 +288,7 @@ def write_output(data):
 
 def generate_layer_1_dict(subject_list):
     print "generating dict"
+    sys.stdout.flush()
     (train_clips,target_clips) = load_dataset_pickle(subject_list)
 
     (train,classes,ids,names, uids) = format_dataset(train_clips)
@@ -297,6 +299,9 @@ def generate_layer_1_dict(subject_list):
     feats = iter(train+target)
     ids = iter(ids+ids_tgt)
     uids = iter(uids + uids_tgt)
+
+    print "combining features back together"
+    sys.stdout.flush()
     for n in (names+names_tgt):
         f = feats.next()
         uid = uids.next()
@@ -308,6 +313,8 @@ def generate_layer_1_dict(subject_list):
             #print e.msg
             toret[n] = [(f,uid)]
 
+    print "sorting combined features"
+    sys.stdout.flush()
 
     for k in toret.keys():
         temp = toret[k]
@@ -318,7 +325,54 @@ def generate_layer_1_dict(subject_list):
             toret[k]+=t[0]
         print len(toret[k])
     #print toret
+    print "done"
+    sys.stdout.flush()
     return toret
+
+def generate_layer_2_dict(subject_list):
+
+    sys.stdout.flush()
+    (train_clips,target_clips) = load_dataset_pickle(subject_list)
+
+    (train,classes,ids_class,names, uids) = format_dataset(train_clips)
+
+    (target,classes_tgt,ids_class_tgt,names_tgt, uids_tgt) = format_dataset(target_clips)
+
+
+    fit = train[::2]
+    fit_class = classes[::2]
+
+    valid = train[1:][::2]
+    valid_class = classes[1:][::2]
+
+    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 120, n_jobs = 8, verbose = 1)
+    print "Fitting forests..."
+    clf.fit(fit, fit_class)
+    results =  clf.predict_proba(valid)
+    results_tgt =  clf.predict_proba(target)
+    print "SCORE:", clf.score(valid, valid_class)
+
+    (layer_2_features,layer_2_classes,layer_2_ids, layer_2_uids) = generate_second_layer(results, ids_class[1:][::2], names[1:][::2], classes[1:][::2], uids[1:][::2])
+
+
+
+    print names_tgt
+    (layer_2_features_tgt,layer_2_classes_tgt,layer_2_ids_tgt, layer_2_uids_tgt) = generate_second_layer(results_tgt, ids_class_tgt, names_tgt, classes_tgt, uids_tgt)
+
+
+    for k in layer_2_features.keys():
+        v = layer_2_features[k]
+        print [layer_2_classes[k]], layer_2_ids[k]
+        layer_2_features[k] = [np.min(v), np.max(v), np.mean(v), np.var(v)] + layer_2_ids[k]
+
+    print "Target data:"
+    for k in layer_2_features_tgt.keys():
+        print k
+        v = layer_2_features_tgt[k]
+        print [layer_2_classes_tgt[k]], layer_2_ids_tgt[k]
+        layer_2_features_tgt[k] = [np.min(v), np.max(v), np.mean(v), np.var(v)] + layer_2_ids_tgt[k]
+
+    return layer_2_features_tgt
 
 if __name__ == '__main__':
     #     pass
@@ -326,6 +380,7 @@ if __name__ == '__main__':
     #write_output(data)
 
     #print generate_layer_1_dict(SUBJECTS[0:1])
+    print generate_layer_2_dict(SUBJECTS[0:1])
 
     print "DONE"
 
