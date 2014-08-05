@@ -212,14 +212,18 @@ def load_dataset_joblib(subject_list):
 
 def load_dataset_pickle(subject_list):
     print "loading datasets"
+    sys.stdout.flush()
     train_clips = []
     target_clips = []
     for s in subject_list:
         print s
+        sys.stdout.flush()
         train_clips += cPickle.load(open("/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+s+'.pkl', 'rb'))
         print "Finished loading train"
+        sys.stdout.flush()
         target_clips += cPickle.load(open("/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+s+'_TEST.pkl', 'rb'))
         print "Finished loading target"
+        sys.stdout.flush()
 
 
     shuffle(train_clips)
