@@ -313,7 +313,7 @@ def train_slave(clips):
 
 
                 #READD FOR TIMEOUT
-                clf = result.get(200)
+                clf = result.get(400)
                 #clf.fit(fit, seizure_fit)
 
 

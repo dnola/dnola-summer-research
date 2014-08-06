@@ -102,7 +102,11 @@ def add_feature_universal(subject, data):
         print "loading: ", fpkl
         pkl = cPickle.load(open(fpkl, 'rb'))
         sys.stdout.flush()
+
         for s in pkl:
+            s.features['universal_lower'] = []
+            print s.features
+            print data[s.name]
             s.features['universal_lower'] = data[s.name]
             clips.append(s)
             print s.features
