@@ -32,7 +32,6 @@ models_new_short = [
 
                 [sklearn.ensemble.RandomForestClassifier, {'n_estimators':20}],
                 [sklearn.ensemble.RandomForestClassifier, {'n_estimators':300}],
-                [sklearn.ensemble.RandomForestClassifier, {'n_estimators':10000}],
 
 
 
@@ -53,8 +52,6 @@ models_new_short = [
                 [sklearn.tree.DecisionTreeClassifier, {'min_samples_split' : 2, 'min_samples_leaf' : 3}],
 
 
-                [sklearn.neighbors.KNeighborsClassifier, {'n_neighbors' : 5}],
-                [sklearn.neighbors.KNeighborsClassifier, {'n_neighbors' : 3}],
                 [sklearn.neighbors.KNeighborsClassifier, {'n_neighbors' : 10}],
                 [sklearn.neighbors.KNeighborsClassifier, {'n_neighbors' : 25}],
                 [sklearn.neighbors.KNeighborsClassifier, {'n_neighbors' : 15}],

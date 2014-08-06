@@ -168,14 +168,14 @@ def fit_random_forests(subject_list):
 
     for k in sorted(layer_2_features.keys()):
         v = layer_2_features[k]
-        print [layer_2_classes[k]], layer_2_ids[k]
+        #print [layer_2_classes[k]], layer_2_ids[k]
         layer_2_features[k] = [np.min(v), np.max(v), np.mean(v), np.var(v)] + layer_2_ids[k]
 
     print "Target data:"
     for k in sorted(layer_2_features_tgt.keys()):
         print k
         v = layer_2_features_tgt[k]
-        print [layer_2_classes_tgt[k]], layer_2_ids_tgt[k]
+        #print [layer_2_classes_tgt[k]], layer_2_ids_tgt[k]
         layer_2_features_tgt[k] = [np.min(v), np.max(v), np.mean(v), np.var(v)] + layer_2_ids_tgt[k]
 
 
@@ -364,16 +364,51 @@ def generate_layer_2_dict(subject_list):
 
     (layer_2_features,layer_2_classes,layer_2_ids, layer_2_uids) = generate_second_layer(results, ids_class[1:][::2], names[1:][::2], classes[1:][::2], uids[1:][::2])
 
+    first = layer_2_features
+    first_ids = layer_2_ids
+
+    fit = train[1::2]
+    fit_class = classes[1::2]
+
+    valid = train[:][::2]
+    valid_class = classes[:][::2]
+
+    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 120, n_jobs = 8, verbose = 1, random_state=SEED)
+    print "Fitting forests..."
+    clf.fit(fit, fit_class)
+    results =  clf.predict_proba(valid)
+    results_tgt =  clf.predict_proba(target)
+    print "SCORE:", clf.score(valid, valid_class)
+
+    train = []
+    fit = []
+    fit_class = []
+    valid = []
+    valid_class = []
+
+    (layer_2_features,layer_2_classes,layer_2_ids, layer_2_uids) = generate_second_layer(results, ids_class[:][::2], names[:][::2], classes[:][::2], uids[:][::2])
+
+    second = layer_2_features
+    second_ids = layer_2_ids
+
 
 
     print names_tgt
     (layer_2_features_tgt,layer_2_classes_tgt,layer_2_ids_tgt, layer_2_uids_tgt) = generate_second_layer(results_tgt, ids_class_tgt, names_tgt, classes_tgt, uids_tgt)
 
 
-    for k in sorted(layer_2_features.keys()):
-        v = layer_2_features[k]
+    for k in second.keys():
+        try:
+            first[k].append(second[k])
+        except:
+            first[k] = second[k]
+
+    first_ids.update(second_ids)
+
+    for k in sorted(first):
+        v = first[k]
         #print [layer_2_classes[k]], layer_2_ids[k]
-        layer_2_features[k] = [np.min(v), np.max(v), np.mean(v), np.var(v)] + layer_2_ids[k]
+        first[k] = [np.min(v), np.max(v), np.mean(v), np.var(v)] + first_ids[k]
 
     print "Target data:"
     for k in sorted(layer_2_features_tgt.keys()):
@@ -381,6 +416,10 @@ def generate_layer_2_dict(subject_list):
         v = layer_2_features_tgt[k]
         #print [layer_2_classes_tgt[k]], layer_2_ids_tgt[k]
         layer_2_features_tgt[k] = [np.min(v), np.max(v), np.mean(v), np.var(v)] + layer_2_ids_tgt[k]
+
+
+
+    ret_dict = first
 
     return layer_2_features_tgt # PROBLEM: We need a dict of EVERYTHING on this layer - no wait - should skip ones we dont have
 
@@ -390,7 +429,7 @@ if __name__ == '__main__':
     write_output(data)
 
     #print generate_layer_1_dict(SUBJECTS[0:1])
-    #print generate_layer_2_dict(SUBJECTS[0:1])
+    print generate_layer_2_dict(SUBJECTS[0:1])
 
     print "DONE"
 

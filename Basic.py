@@ -313,8 +313,8 @@ def train_slave(clips):
 
 
                 #READD FOR TIMEOUT
-                #clf = result.get(90)
-                clf.fit(fit, seizure_fit)
+                clf = result.get(200)
+                #clf.fit(fit, seizure_fit)
 
 
                 if clf.score(cv, seizure_cv) < .60:
