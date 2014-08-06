@@ -272,7 +272,7 @@ def generate_second_layer(results, ids, names, classes, uids):
         next_uid = v_uid_it.next()
         next_name = v_name_it.next()
         next_class = v_class_it.next()
-        print next_id, next_name,  r
+        #print next_id, next_name,  r
         if not layer_2_features.has_key(next_name):
             layer_2_features[next_name] = []
 
@@ -399,15 +399,22 @@ def generate_layer_2_dict(subject_list):
 
     for k in second.keys():
         try:
-            first[k].append(second[k])
+            first[k]+=second[k]
         except:
             first[k] = second[k]
 
     first_ids.update(second_ids)
 
-    for k in sorted(first):
+    for k in sorted(first.keys()):
         v = first[k]
         #print [layer_2_classes[k]], layer_2_ids[k]
+
+        #print "v: "
+        #print list(v)
+        #print np.min(v)
+
+
+        #print [np.min(v), np.max(v), np.mean(v), np.var(v)]
         first[k] = [np.min(v), np.max(v), np.mean(v), np.var(v)] + first_ids[k]
 
     print "Target data:"
@@ -419,14 +426,14 @@ def generate_layer_2_dict(subject_list):
 
 
 
-    ret_dict = first
+    ret_dict = first.update(layer_2_features_tgt)
 
-    return layer_2_features_tgt # PROBLEM: We need a dict of EVERYTHING on this layer - no wait - should skip ones we dont have
+    return ret_dict # PROBLEM: We need a dict of EVERYTHING on this layer - no wait - should skip ones we dont have
 
 if __name__ == '__main__':
     #     pass
-    data = fit_random_forests(SUBJECTS[:])
-    write_output(data)
+    #data = fit_random_forests(SUBJECTS[:])
+    #write_output(data)
 
     #print generate_layer_1_dict(SUBJECTS[0:1])
     print generate_layer_2_dict(SUBJECTS[0:1])
