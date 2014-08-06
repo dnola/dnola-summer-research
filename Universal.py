@@ -362,6 +362,7 @@ def generate_layer_2_dict(subject_list):
     results_tgt =  clf.predict_proba(target)
     print "SCORE:", clf.score(valid, valid_class)
 
+    print "generating first half"
     (layer_2_features,layer_2_classes,layer_2_ids, layer_2_uids) = generate_second_layer(results, ids_class[1:][::2], names[1:][::2], classes[1:][::2], uids[1:][::2])
 
     first = layer_2_features
@@ -386,6 +387,7 @@ def generate_layer_2_dict(subject_list):
     valid = []
     valid_class = []
 
+    print "generating second half"
     (layer_2_features,layer_2_classes,layer_2_ids, layer_2_uids) = generate_second_layer(results, ids_class[:][::2], names[:][::2], classes[:][::2], uids[:][::2])
 
     second = layer_2_features
@@ -393,9 +395,11 @@ def generate_layer_2_dict(subject_list):
 
 
 
-    print names_tgt
+    #print names_tgt
+    print "generating target layer"
     (layer_2_features_tgt,layer_2_classes_tgt,layer_2_ids_tgt, layer_2_uids_tgt) = generate_second_layer(results_tgt, ids_class_tgt, names_tgt, classes_tgt, uids_tgt)
 
+    print "lengths: ", len(first.keys()), len(second.keys())
 
     for k in second.keys():
         try:
@@ -405,6 +409,7 @@ def generate_layer_2_dict(subject_list):
 
     first_ids.update(second_ids)
 
+    print "transforming layer"
     for k in sorted(first.keys()):
         v = first[k]
         #print [layer_2_classes[k]], layer_2_ids[k]
@@ -417,7 +422,7 @@ def generate_layer_2_dict(subject_list):
         #print [np.min(v), np.max(v), np.mean(v), np.var(v)]
         first[k] = [np.min(v), np.max(v), np.mean(v), np.var(v)] + first_ids[k]
 
-    print "Target data:"
+    print "Target data transform:"
     for k in sorted(layer_2_features_tgt.keys()):
         #print k
         v = layer_2_features_tgt[k]
