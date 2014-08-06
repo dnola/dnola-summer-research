@@ -436,7 +436,7 @@ if __name__ == '__main__':
     #write_output(data)
 
     #print generate_layer_1_dict(SUBJECTS[0:1])
-    print generate_layer_2_dict(SUBJECTS[0:1])
+    #print generate_layer_2_dict(SUBJECTS[0:1])
 
     print "DONE"
 
