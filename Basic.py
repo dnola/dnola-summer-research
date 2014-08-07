@@ -383,7 +383,6 @@ def calculate_similarities(ft):
 
 
 def reduce_feature_space(f, best):
-    return f
     for fi in range(len(f)):
         v = f[fi]
         v = [ x if isinstance(x, (float,int,long)) else 0 for x in v]
@@ -429,7 +428,7 @@ def train_master(predictions, seizure_cv, metafeatures):
 
 
     print clf_layer_lin.feature_importances_
-    best_feats = np.argsort(clf_layer_lin.feature_importances_)[-10:]
+    best_feats = np.argsort(clf_layer_lin.feature_importances_)[-5:]
     print best_feats
 
 
