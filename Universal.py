@@ -431,9 +431,9 @@ def generate_layer_2_dict(subject_list):
 
 
 
-    ret_dict = first.update(layer_2_features_tgt)
+    first.update(layer_2_features_tgt)
 
-    return ret_dict # PROBLEM: We need a dict of EVERYTHING on this layer - no wait - should skip ones we dont have
+    return first # PROBLEM: We need a dict of EVERYTHING on this layer - no wait - should skip ones we dont have
 
 if __name__ == '__main__':
     #     pass
