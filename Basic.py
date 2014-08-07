@@ -5,7 +5,7 @@ __author__ = 'davidnola'
 ### Running Parameters
 
 import ModelList
-FINAL_VERIFY_PERCENT= .15
+FINAL_VERIFY_PERCENT= .30
 
 
 ### Start
@@ -390,20 +390,23 @@ def train_master(predictions, seizure_cv, metafeatures):
 
     #calculate_similarities(predictions)
 
-    clf_layer_lin = linear_model.LogisticRegression(penalty = 'l2', C= .3, random_state=SEED)
-    clf_layer = linear_model.LogisticRegression(penalty = 'l2', C= 1, random_state=SEED)
+
+    clf_layer_lin = sklearn.ensemble.RandomForestClassifier(n_estimators=500, random_state=SEED)
+    clf_layer = sklearn.neighbors.KNeighborsClassifier(weights='distance', n_neighbors=5)
+    # clf_layer_lin = linear_model.LogisticRegression(penalty = 'l2', C= .3, random_state=SEED)
+    # clf_layer = linear_model.LogisticRegression(penalty = 'l2', C= 1, random_state=SEED)
     #clf_layer = MultilayerPerceptron.MultilayerPerceptronManager()
 
     clf_layer_lin.fit(feature_layer, seizure_cv)
     clf_layer.fit(feature_layer, seizure_cv)
 
-    cPickle.dump((TemporaryMetrics.model_readable, clf_layer_lin.coef_), open('scores.spkl', 'wb'))
+    cPickle.dump((TemporaryMetrics.model_readable, clf_layer_lin.feature_importances_), open('scores.spkl', 'wb'))
 
     retry = False
     todel = []
-    print clf_layer_lin.coef_
-    for i in range(len(clf_layer_lin.coef_[0])):
-        if clf_layer_lin.coef_[0][i] < 0:
+    print clf_layer_lin.feature_importances_
+    for i in range(len(clf_layer_lin.feature_importances_[0])):
+        if clf_layer_lin.feature_importances_[0][i] < 0:
             todel.append(i)
             retry = True
 
@@ -416,7 +419,7 @@ def train_master(predictions, seizure_cv, metafeatures):
 
     if retry:
         for index in sorted(todel, reverse=True):
-            print "deleting: ", metafeatures[index][0],metafeatures[index][1].__class__.__name__ , clf_layer_lin.coef_[0][index]
+            print "deleting: ", metafeatures[index][0],metafeatures[index][1].__class__.__name__ , clf_layer_lin.feature_importances_[0][index]
             del predictions[index]
             del metafeatures[index]
             del TemporaryMetrics.model_titles[index]
