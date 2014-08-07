@@ -583,9 +583,10 @@ def analyze_dataset(clips, test_data, early=False):
 
     (final_feature_layer_check, metafeatures) = generate_test_layer(final_validate, models, clips[0].features.keys(), metafeatures)
     final_feature_layer_check = reduce_feature_space(final_feature_layer_check, best_feats)
+
     final_validation_results = generate_validation_results(final_validate)
 
-    print "OLD SCORE: ", clf_layer_lin.score(final_feature_layer_check, final_validation_results)
+    #print "OLD SCORE: ", clf_layer_lin.score(final_feature_layer_check, final_validation_results)
     print "SCORE: ", clf_layer.score(final_feature_layer_check, final_validation_results)
 
 
