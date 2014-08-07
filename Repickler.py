@@ -105,11 +105,11 @@ def add_feature_universal(subject, data):
 
         for s in pkl:
             s.features['universal_lower'] = []
-            print s.features
-            print data[s.name]
+            #print s.features
+            #print data[s.name]
             s.features['universal_lower'] = data[s.name]
             clips.append(s)
-            print s.features
+            #print s.features
         cPickle.dump(clips, open(fpkl, 'wb'),-1)
 
 
