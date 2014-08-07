@@ -329,8 +329,12 @@ def train_slave(clips):
 
                 metafeatures.append((feat, clf))
 
-
-                predict = clf.predict(cv)
+                predict = None
+                try:
+                    predict = clf.predict_proba(cv)
+                    predict = [1.0-x[0] for x in predict]
+                except:
+                    predict = clf.predict(cv)
 
                 #print "Feature: ", feat, "Model: ", a[0].__name__,  " score: ", clf.score(cv, seizure_cv)
                 TemporaryMetrics.model_titles.append(("Feature:\t%s ;" % feat).ljust(50)+("Model:\t%s ;" % a[0].__name__).ljust(40) + ("Score: %s " % round(clf.score(cv, seizure_cv),5)).ljust(25) + str(str(a[1])))
@@ -376,6 +380,15 @@ def calculate_similarities(ft):
 
 
 
+def reduce_feature_space(f, best):
+    for fi in range(len(f)):
+        v = f[fi]
+        f[fi] = [np.max(v), np.min(v), np.mean(v), np.var(v), np.std(v), sp.stats.skew(v), sp.stats.kurtosis(v)]
+        for b in best:
+            f[fi].append(v[b])
+        print f[fi]
+    return f
+
 def train_master(predictions, seizure_cv, metafeatures):
     print "training master"
     feature_layer = []
@@ -398,13 +411,8 @@ def train_master(predictions, seizure_cv, metafeatures):
     best_feats = np.argsort(clf_layer_lin.feature_importances_)[-10:]
     print best_feats
 
-    for fi in range(len(feature_layer)):
-        v = feature_layer[fi]
-        feature_layer[fi] = [np.max(v), np.min(v), np.mean(v), np.var(v), np.std(v), sp.stats.skew(v), sp.stats.kurtosis(v)]
-        for b in best_feats:
-            feature_layer[fi].append(v[b])
-        print feature_layer[fi]
 
+    feature_layer = reduce_feature_space(feature_layer, best_feats)
 
     clf_layer = sklearn.ensemble.RandomForestClassifier(n_estimators=700, random_state=SEED)
     # clf_layer_lin = linear_model.LogisticRegression(penalty = 'l2', C= .3, random_state=SEED)
@@ -441,7 +449,7 @@ def train_master(predictions, seizure_cv, metafeatures):
 
         return train_master(predictions, seizure_cv, metafeatures)
 
-    return (clf_layer, clf_layer_lin)
+    return (clf_layer, clf_layer_lin, best_feats)
 
 
 def generate_test_layer(test_data, models, features, metafeatures):
@@ -547,7 +555,7 @@ def analyze_dataset(clips, test_data, early=False):
 
     (predictions, seizure_cv, models, metafeatures) = train_slave(clips)
     print "before metafeatures: ", len(metafeatures)
-    (clf_layer, clf_layer_lin) = train_master(predictions, seizure_cv, metafeatures)
+    (clf_layer, clf_layer_lin, best_feats) = train_master(predictions, seizure_cv, metafeatures)
     print "after metafeatures: ", len(metafeatures)
 
     (final_feature_layer, metafeatures) = generate_test_layer(test_data, models, clips[0].features.keys(), metafeatures)
@@ -556,6 +564,7 @@ def analyze_dataset(clips, test_data, early=False):
 
 
 
+    final_feature_layer = reduce_feature_space(final_feature_layer, best_feats)
     final_predict = clf_layer.predict_proba(final_feature_layer)
 
 
@@ -573,6 +582,7 @@ def analyze_dataset(clips, test_data, early=False):
 
 
     (final_feature_layer_check, metafeatures) = generate_test_layer(final_validate, models, clips[0].features.keys(), metafeatures)
+    final_feature_layer_check = reduce_feature_space(final_feature_layer_check, best_feats)
     final_validation_results = generate_validation_results(final_validate)
 
     print "OLD SCORE: ", clf_layer_lin.score(final_feature_layer_check, final_validation_results)
