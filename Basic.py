@@ -536,12 +536,12 @@ def analyze_dataset(clips, test_data, early=False):
 
 
 
-    final_predict = clf_layer.predict(final_feature_layer)
+    final_predict = clf_layer.predict_proba(final_feature_layer)
 
 
 
 
-    #final_predict = [1.0-x[0] for x in final_predict]
+    final_predict = [1.0-x[0] for x in final_predict]
 
 
 
