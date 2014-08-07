@@ -319,7 +319,8 @@ def train_slave(clips):
                 clf = result.get(400)
                 #clf.fit(fit, seizure_fit)
 
-
+                print "score" , clf.score(cv, seizure_cv)
+                print
                 if clf.score(cv, seizure_cv) < .60:
                     print "BAD SCORE"
                     raise Exception
@@ -391,8 +392,8 @@ def train_master(predictions, seizure_cv, metafeatures):
     #calculate_similarities(predictions)
 
 
-    clf_layer_lin = sklearn.ensemble.RandomForestClassifier(n_estimators=500, random_state=SEED)
-    clf_layer = sklearn.neighbors.KNeighborsClassifier(weights='distance', n_neighbors=5)
+    clf_layer_lin = sklearn.ensemble.RandomForestClassifier(n_estimators=100, random_state=SEED)
+    clf_layer = sklearn.ensemble.RandomForestClassifier(n_estimators=700, random_state=SEED)
     # clf_layer_lin = linear_model.LogisticRegression(penalty = 'l2', C= .3, random_state=SEED)
     # clf_layer = linear_model.LogisticRegression(penalty = 'l2', C= 1, random_state=SEED)
     #clf_layer = MultilayerPerceptron.MultilayerPerceptronManager()
