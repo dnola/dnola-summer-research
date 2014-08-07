@@ -7,7 +7,7 @@ __author__ = 'davidnola'
 import ModelList
 FINAL_VERIFY_PERCENT= .30
 
-
+import math
 ### Start
 import multiprocessing as mp
 import signal
@@ -400,7 +400,7 @@ def train_master(predictions, seizure_cv, metafeatures):
         toadd = []
         for category in range(len(predictions)): #for every metafeature prediction set added to predictions
             v = predictions[category][i]
-            if isinstance(v, (float,int,long)):
+            if not math.isnan(v):
                 toadd.append(v) # add the corresponding prediction for that mat,  as guessed by that metafeature model
             else:
                 toadd.append(0)
