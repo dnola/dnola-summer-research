@@ -320,7 +320,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
 
     """
 
-    datasets = load_data(dataset)
+    datasets = ( 0, 0, 0)
     test = cPickle.load(open("SummerResearchData/"+'Dog_1'+'_TEST.pkl', 'rb'))
     train = cPickle.load(open("SummerResearchData/"+'Dog_1'+'.pkl', 'rb'))
     import random

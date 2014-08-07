@@ -281,17 +281,20 @@ def train_slave(clips):
             clf = None
             temp = None
 
-            try:
-                temp = a[0](**a[1])
-                clf = temp
-            except:
-                temp = a[0]()
+            if not 'KNeighborsClassifier' in a[0].__name__:
+                try:
+                    temp = a[0](**a[1])
+                    clf = temp
+                except:
+                    temp = a[0]()
 
-            try:
-                a[1]['random_state'] = SEED
+                try:
+                    a[1]['random_state'] = SEED
+                    clf = a[0](**a[1])
+                except:
+                    clf = temp
+            else:
                 clf = a[0](**a[1])
-            except:
-                clf = temp
 
 
             #if 'variances' in feat:
