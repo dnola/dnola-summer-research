@@ -16,6 +16,7 @@ import sklearn
 import scipy.io
 import glob
 import numpy as np
+import scipy as sp
 import cPickle
 import random
 from multiprocessing import *
@@ -328,7 +329,7 @@ def train_slave(clips):
 
                 metafeatures.append((feat, clf))
 
-            ###
+
                 predict = clf.predict(cv)
 
                 #print "Feature: ", feat, "Model: ", a[0].__name__,  " score: ", clf.score(cv, seizure_cv)
@@ -391,14 +392,26 @@ def train_master(predictions, seizure_cv, metafeatures):
 
     #calculate_similarities(predictions)
 
-
     clf_layer_lin = sklearn.ensemble.RandomForestClassifier(n_estimators=100, random_state=SEED)
+    clf_layer_lin.fit(feature_layer, seizure_cv)
+    print clf_layer_lin.feature_importances_
+    best_feats = np.argsort(clf_layer_lin.feature_importances_)[-10:]
+    print best_feats
+
+    for fi in range(len(feature_layer)):
+        v = feature_layer[fi]
+        feature_layer[fi] = [np.max(v), np.min(v), np.mean(v), np.var(v), np.std(v), sp.stats.skew(v), sp.stats.kurtosis(v)]
+        for b in best_feats:
+            feature_layer[fi].append(v[b])
+        print feature_layer[fi]
+
+
     clf_layer = sklearn.ensemble.RandomForestClassifier(n_estimators=700, random_state=SEED)
     # clf_layer_lin = linear_model.LogisticRegression(penalty = 'l2', C= .3, random_state=SEED)
     # clf_layer = linear_model.LogisticRegression(penalty = 'l2', C= 1, random_state=SEED)
     #clf_layer = MultilayerPerceptron.MultilayerPerceptronManager()
 
-    clf_layer_lin.fit(feature_layer, seizure_cv)
+
     clf_layer.fit(feature_layer, seizure_cv)
 
     cPickle.dump((TemporaryMetrics.model_readable, clf_layer_lin.feature_importances_), open('scores.spkl', 'wb'))
