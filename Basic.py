@@ -410,7 +410,10 @@ def train_master(predictions, seizure_cv, metafeatures):
 
 
 
-
+    for fi in range(len(feature_layer)):
+        v = feature_layer[fi]
+        v = [ x if isinstance(x, (float,int,long)) else 0 for x in v]
+        feature_layer[fi] = v
 
 
     clf_layer_lin = sklearn.ensemble.RandomForestClassifier(n_estimators=100, random_state=SEED)
