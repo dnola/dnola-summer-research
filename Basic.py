@@ -399,7 +399,11 @@ def train_master(predictions, seizure_cv, metafeatures):
     for i in range(len(predictions[0])): #for every .mat
         toadd = []
         for category in range(len(predictions)): #for every metafeature prediction set added to predictions
-            toadd.append(predictions[category][i]) # add the corresponding prediction for that mat,  as guessed by that metafeature model
+            v = predictions[category][i]
+            if isinstance(v, (float,int,long)):
+                toadd.append(v) # add the corresponding prediction for that mat,  as guessed by that metafeature model
+            else:
+                toadd.append(0)
         feature_layer.append(toadd)
 
     #print seizure_cv
@@ -408,12 +412,15 @@ def train_master(predictions, seizure_cv, metafeatures):
 
     #calculate_similarities(predictions)
 
-
+    print seizure_cv
 
     for fi in range(len(feature_layer)):
         v = feature_layer[fi]
         v = [ x if isinstance(x, (float,int,long)) else 0 for x in v]
         feature_layer[fi] = v
+
+
+    print feature_layer
 
 
     clf_layer_lin = sklearn.ensemble.RandomForestClassifier(n_estimators=100, random_state=SEED)
