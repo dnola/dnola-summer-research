@@ -383,6 +383,7 @@ def calculate_similarities(ft):
 
 
 def reduce_feature_space(f, best):
+    return f
     for fi in range(len(f)):
         v = f[fi]
         v = [ x if isinstance(x, (float,int,long)) else 0 for x in v]
