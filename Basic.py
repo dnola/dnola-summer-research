@@ -385,6 +385,7 @@ def calculate_similarities(ft):
 def reduce_feature_space(f, best):
     for fi in range(len(f)):
         v = f[fi]
+        v = [ x if isinstance(x, (float,int,long)) else 0 for x in v]
         f[fi] = [np.max(v), np.min(v), np.mean(v), np.var(v), np.std(v), sp.stats.skew(v), sp.stats.kurtosis(v)]
         for b in best:
             f[fi].append(v[b])
@@ -407,8 +408,15 @@ def train_master(predictions, seizure_cv, metafeatures):
 
     #calculate_similarities(predictions)
 
+
+
+
+
+
     clf_layer_lin = sklearn.ensemble.RandomForestClassifier(n_estimators=100, random_state=SEED)
     clf_layer_lin.fit(feature_layer, seizure_cv)
+
+
     print clf_layer_lin.feature_importances_
     best_feats = np.argsort(clf_layer_lin.feature_importances_)[-10:]
     print best_feats
