@@ -333,7 +333,9 @@ def train_slave(clips):
                 try:
                     predict = clf.predict_proba(cv)
                     predict = [1.0-x[0] for x in predict]
-                except:
+                    print predict
+                except Exception as e:
+                    print e.message
                     predict = clf.predict(cv)
 
                 #print "Feature: ", feat, "Model: ", a[0].__name__,  " score: ", clf.score(cv, seizure_cv)
