@@ -405,8 +405,8 @@ def train_master(predictions, seizure_cv, metafeatures):
     retry = False
     todel = []
     print clf_layer_lin.feature_importances_
-    for i in range(len(clf_layer_lin.feature_importances_[0])):
-        if clf_layer_lin.feature_importances_[0][i] < 0:
+    for i in range(len(clf_layer_lin.feature_importances_)):
+        if clf_layer_lin.feature_importances_[i] < 0:
             todel.append(i)
             retry = True
 
@@ -419,7 +419,7 @@ def train_master(predictions, seizure_cv, metafeatures):
 
     if retry:
         for index in sorted(todel, reverse=True):
-            print "deleting: ", metafeatures[index][0],metafeatures[index][1].__class__.__name__ , clf_layer_lin.feature_importances_[0][index]
+            print "deleting: ", metafeatures[index][0],metafeatures[index][1].__class__.__name__ , clf_layer_lin.feature_importances_[index]
             del predictions[index]
             del metafeatures[index]
             del TemporaryMetrics.model_titles[index]
