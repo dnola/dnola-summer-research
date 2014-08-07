@@ -427,7 +427,7 @@ def train_master(predictions, seizure_cv, metafeatures):
     clf_layer_lin.fit(feature_layer, seizure_cv)
 
 
-    print clf_layer_lin.feature_importances_
+    print "importances", clf_layer_lin.feature_importances_
     best_feats = np.argsort(clf_layer_lin.feature_importances_)[-5:]
     print best_feats
 
