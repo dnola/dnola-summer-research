@@ -14,6 +14,7 @@ import scipy.ndimage.interpolation
 import Universal
 from Universal import UniversalSegment
 import sys
+from itertools import chain, combinations
 SUBJECTS = ['Dog_1','Dog_2','Dog_3','Dog_4','Patient_1','Patient_2','Patient_3','Patient_4','Patient_5','Patient_6','Patient_7','Patient_8']
 
 #SUBJECTS = ['Dog_1']
@@ -111,6 +112,38 @@ def add_feature(subject, location, feature, fidelity = 0):
             #print s.features
             clips.append(s)
         cPickle.dump(clips, open(fpkl, 'wb'),-1)
+
+def powerset_features(subject):
+    for fpkl in glob.glob(subject+'*.pkl'):
+        clips = [];
+        print "loading: ", fpkl
+        pkl = cPickle.load(open(fpkl, 'rb'))
+        sys.stdout.flush()
+
+        for s in pkl:
+            toadd = []
+            for combo in powerset_generator(s.features.keys()):
+                combo = list(combo)
+                if len(combo) < 1:
+                    continue
+                s.features[str(combo)]=[]
+                #print "combo", combo
+                for c in combo:
+                    print c
+                    s.features[str(combo)]+=s.features[c]
+
+
+            clips.append(s)
+            #print "features", s.features
+        cPickle.dump(clips, open(fpkl, 'wb'),-1)
+
+
+
+
+def powerset_generator(i):
+    for subset in chain.from_iterable(combinations(i, r) for r in range(len(i)+1)):
+        yield set(subset)
+
 
 
 def add_feature_universal(subject, data):
@@ -450,12 +483,12 @@ def kickoff_subject(subject):
 
 if __name__ == '__main__':
     p = []
-    for s in SUBJECTS:
-        p.append(Process(target=kickoff_subject, args=(s,)))
-
-    for proc in p:
-        proc.start()
-
-    for proc in p:
-        proc.join()
+    # for s in SUBJECTS:
+    #     p.append(Process(target=kickoff_subject, args=(s,)))
+    #
+    # for proc in p:
+    #     proc.start()
+    #
+    # for proc in p:
+    #     proc.join()
 
