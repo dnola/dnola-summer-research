@@ -264,6 +264,7 @@ def fit_this(clf, fit, seizure_fit):
 
 
 def train_slave(clips):
+    global SEED
     print "training slave"
     (seizure_fit, seizure_cv) = setup_validation_data(clips)
     models = []
@@ -274,10 +275,11 @@ def train_slave(clips):
     print sorted(clips[0].features.keys())
     for feat in sorted(clips[0].features.keys()):
 
-        algos = algorithms[:]
+        algos = algorithms[:] * 5
 
 
         for a in algos:
+            SEED = SEED + 1
             print feat, a[0].__name__, a[1]
             clf = None
             temp = None
