@@ -281,7 +281,7 @@ def train_slave(clips, final_validate):
 
         for a in algos:
             SEED = SEED + 1
-            print feat, a[0].__name__, a[1]
+            print "\n\n", feat, a[0].__name__, a[1]
             clf = None
             temp = None
 
@@ -362,7 +362,7 @@ def train_slave(clips, final_validate):
                 print auc, p_auc
 
                 if sc<p_sc or auc<p_auc or (sc == p_sc and auc == p_auc):
-                    print "reverting"
+                    print "REVERTING"
                     (metafeatures, predictions) = (t_meta, t_pred)
                     (sc, auc) = (p_sc, p_auc)
 
