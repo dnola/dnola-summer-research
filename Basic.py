@@ -263,7 +263,7 @@ def fit_this(clf, fit, seizure_fit):
     return clf
 
 
-def train_slave(clips):
+def train_slave(clips, final_validate):
     global SEED
     print "training slave"
     (seizure_fit, seizure_cv) = setup_validation_data(clips)
@@ -271,7 +271,8 @@ def train_slave(clips):
     predictions = []
     metafeatures = []
 
-
+    sc = 0
+    auc = 0
     print sorted(clips[0].features.keys())
     for feat in sorted(clips[0].features.keys()):
 
@@ -322,20 +323,20 @@ def train_slave(clips):
                 clf = result.get(400)
                 #clf.fit(fit, seizure_fit)
 
-                print "score" , clf.score(cv, seizure_cv)
+                #print "score" , clf.score(cv, seizure_cv)
                 print
                 if clf.score(cv, seizure_cv) < .60:
                     print "BAD SCORE"
                     raise Exception
                 models.append(clf)
 
-                metafeatures.append((feat, clf))
+
 
                 predict = None
                 try:
                     predict = clf.predict_proba(cv)
                     predict = [1.0-x[0] for x in predict]
-                    print predict
+                    #print predict
                 except Exception as e:
                     print e.message
                     predict = clf.predict(cv)
@@ -347,7 +348,24 @@ def train_slave(clips):
                 TemporaryMetrics.model_readable.append(("Feature:\t%s ;" % feat)+(" ; Model:%s ;" % a[0].__name__) + str(a[1]))
                 TemporaryMetrics.model_short.append(("Model:%s ;" % a[0].__name__) + str(a[1]))
 
+                metafeatures.append((feat, clf))
                 predictions.append(predict)
+
+                (t_meta, t_pred) = (metafeatures[:], predictions[:])
+                print "RESULTS THIS RUN:"
+
+                (p_sc, p_auc) = (sc, auc)
+
+                (sc, auc) = calc_results(predictions, seizure_cv, metafeatures, final_validate)
+
+                print sc, p_sc
+                print auc, p_auc
+
+                if sc<p_sc or auc<p_auc or (sc == p_sc and auc == p_auc):
+                    "reverting"
+                    (metafeatures, predictions) = (t_meta, t_pred)
+                    (sc, auc) = (p_sc, p_auc)
+
             except mp.TimeoutError:
                 #models.append(0)
                 #predictions.append([0] * len(cv))
@@ -368,6 +386,10 @@ def train_slave(clips):
     print "DONE training slave"
     return (predictions, seizure_cv, models ,metafeatures)
     #return (models, seizure_cv)
+
+def calc_results(predictions, seizure_cv, metafeatures, final_validate):
+    (clf_layer, clf_layer_lin, best_feats) = train_master(predictions, seizure_cv, metafeatures)
+    return final_score(final_validate, clf_layer, metafeatures)
 
 def calculate_similarities(ft):
     meta = iter(TemporaryMetrics.model_readable)
@@ -396,7 +418,7 @@ def reduce_feature_space(f, best):
     return f
 
 def train_master(predictions, seizure_cv, metafeatures):
-    print "training master"
+    print "training top layer"
     feature_layer = []
 
     for i in range(len(predictions[0])): #for every .mat
@@ -415,7 +437,7 @@ def train_master(predictions, seizure_cv, metafeatures):
 
     #calculate_similarities(predictions)
 
-    print seizure_cv
+    #print seizure_cv
 
     for fi in range(len(feature_layer)):
         v = feature_layer[fi]
@@ -423,16 +445,16 @@ def train_master(predictions, seizure_cv, metafeatures):
         feature_layer[fi] = v
 
 
-    print feature_layer
+    #print feature_layer
 
 
     clf_layer_lin = sklearn.ensemble.RandomForestClassifier(n_estimators=100, random_state=SEED)
     clf_layer_lin.fit(feature_layer, seizure_cv)
 
 
-    print "importances", clf_layer_lin.feature_importances_
+    #print "importances", clf_layer_lin.feature_importances_
     best_feats = np.argsort(clf_layer_lin.feature_importances_)[-10:]
-    print best_feats
+    #print best_feats
 
 
     feature_layer = reduce_feature_space(feature_layer, best_feats)
@@ -449,7 +471,7 @@ def train_master(predictions, seizure_cv, metafeatures):
 
     retry = False
     todel = []
-    print clf_layer_lin.feature_importances_
+    #print clf_layer_lin.feature_importances_
     for i in range(len(clf_layer_lin.feature_importances_)):
         if clf_layer_lin.feature_importances_[i] < 0:
             todel.append(i)
@@ -464,7 +486,7 @@ def train_master(predictions, seizure_cv, metafeatures):
 
     if retry:
         for index in sorted(todel, reverse=True):
-            print "deleting: ", metafeatures[index][0],metafeatures[index][1].__class__.__name__ , clf_layer_lin.feature_importances_[index]
+            #print "deleting: ", metafeatures[index][0],metafeatures[index][1].__class__.__name__ , clf_layer_lin.feature_importances_[index]
             del predictions[index]
             del metafeatures[index]
             del TemporaryMetrics.model_titles[index]
@@ -475,14 +497,14 @@ def train_master(predictions, seizure_cv, metafeatures):
     return (clf_layer, clf_layer_lin, best_feats)
 
 
-def generate_test_layer(test_data, models, features, metafeatures):
+def generate_test_layer(test_data, metafeatures):
     toret = []
     final = []
     formatted_data = []
 
 
-    print test_data[0].features
-    print features
+    #print test_data[0].features
+    #print features
 
     # for k in features:
     #     for a in algorithms:
@@ -540,6 +562,27 @@ def generate_validation_results(data):
     return toret
 
 
+
+def final_score(final_validate, clf_layer, metafeatures, best_feats = None):
+    (final_feature_layer_check, metafeatures) = generate_test_layer(final_validate, metafeatures)
+    final_feature_layer_check = reduce_feature_space(final_feature_layer_check, best_feats)
+
+    final_validation_results = generate_validation_results(final_validate)
+
+    #print "OLD SCORE: ", clf_layer_lin.score(final_feature_layer_check, final_validation_results)
+    sc = clf_layer.score(final_feature_layer_check, final_validation_results)
+    print "SCORE: ", sc
+
+
+    from sklearn.metrics import roc_curve, auc
+    fpr, tpr, thresholds = roc_curve(final_validation_results, clf_layer.predict_proba(final_feature_layer_check)[:, 1])
+    roc_auc = auc(fpr, tpr)
+    print "Area under the ROC curve : %f" % roc_auc
+
+    return (sc,roc_auc)
+
+
+
 def analyze_dataset(clips, test_data, early=False):
     print "Begin analysis:   Training Data Size:", len(clips), "Final Test Data Size:", len(test_data)
 
@@ -564,27 +607,16 @@ def analyze_dataset(clips, test_data, early=False):
                 seiz_count+=1
 
 
-
-    #print [c.seizure for c in clips[:-FINAL_VERIFY_SIZE]]
-
-    #print seiz_count
-
     final_validate = clips[-FINAL_VERIFY_SIZE:]
     clips = clips[:-FINAL_VERIFY_SIZE]
 
 
-
-    #EDITS GO HERE
-
-    (predictions, seizure_cv, models, metafeatures) = train_slave(clips)
+    (predictions, seizure_cv, models, metafeatures) = train_slave(clips, final_validate)
     print "before metafeatures: ", len(metafeatures)
     (clf_layer, clf_layer_lin, best_feats) = train_master(predictions, seizure_cv, metafeatures)
     print "after metafeatures: ", len(metafeatures)
 
-    (final_feature_layer, metafeatures) = generate_test_layer(test_data, models, clips[0].features.keys(), metafeatures)
-
-    #print "final metafeatures: ", len(metafeatures)
-
+    (final_feature_layer, metafeatures) = generate_test_layer(test_data, metafeatures)
 
 
     final_feature_layer = reduce_feature_space(final_feature_layer, best_feats)
@@ -595,7 +627,7 @@ def analyze_dataset(clips, test_data, early=False):
 
     final_predict = [1.0-x[0] for x in final_predict]
 
-
+    (sc, auc) = final_score(final_validate, clf_layer, metafeatures, best_feats)
 
     #print clf_layer.score(final_feature_layer, seizure_final)
     #print len(final_predict)
@@ -603,35 +635,11 @@ def analyze_dataset(clips, test_data, early=False):
 
     #print "Coefficients: ", clf_layer.coef_
 
-
-    (final_feature_layer_check, metafeatures) = generate_test_layer(final_validate, models, clips[0].features.keys(), metafeatures)
-    final_feature_layer_check = reduce_feature_space(final_feature_layer_check, best_feats)
-
-    final_validation_results = generate_validation_results(final_validate)
-
-    #print "OLD SCORE: ", clf_layer_lin.score(final_feature_layer_check, final_validation_results)
-    print "SCORE: ", clf_layer.score(final_feature_layer_check, final_validation_results)
-
-
-    from sklearn.metrics import roc_curve, auc
-    fpr, tpr, thresholds = roc_curve(final_validation_results, clf_layer.predict_proba(final_feature_layer_check)[:, 1])
-    roc_auc = auc(fpr, tpr)
-    print "Area under the ROC curve : %f" % roc_auc
-    #
     # #TemporaryMetrics.feature_scores_raw.append(clf_layer.coef_)
     #
     # TemporaryMetrics.AUC_Mappings.append([len(clips)+FINAL_VERIFY_SIZE, roc_auc])
 
-
-
-
     return final_predict
-
-
-
-
-
-
 
 
 def procc(result_q):
@@ -752,9 +760,9 @@ if __name__ == '__main__':
         f.write("clip,seizure,early\n")
         f.close()
 
-    FINAL_VERIFY_PERCENT= .15
-    algorithms = ModelList.models_MLP
-    #algorithms = ModelList.models_best
+    FINAL_VERIFY_PERCENT= .30
+    #algorithms = ModelList.models_MLP
+    algorithms = ModelList.models_best
     #algorithms =  ModelList.models_small
 
     multi_proc_mode = False
