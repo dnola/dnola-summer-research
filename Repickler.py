@@ -72,6 +72,23 @@ def combine_pickles():
         cPickle.dump(final_pkl, open(first[first.rfind('/')+1:], 'wb'),-1)
 
 
+def combine_features(subject):
+    for fpkl in glob.glob(subject+'*.pkl'):
+        clips = [];
+        print "loading: ", fpkl
+        pkl = cPickle.load(open(fpkl, 'rb'))
+        sys.stdout.flush()
+
+        for s in pkl:
+            toadd = []
+            for k, v in s.features:
+                toadd+=v
+            s.features = {}
+            s.features['all_features'] = toadd
+            clips.append(s)
+            print s.features
+        cPickle.dump(clips, open(fpkl, 'wb'),-1)
+
 def add_feature(subject, location, feature, fidelity = 0):
     location = location+subject+'/*.mat'
     print location

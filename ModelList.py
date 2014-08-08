@@ -199,12 +199,11 @@ models_best = [
         ]
 
 models_small = [
-                    [sklearn.svm.LinearSVC ,{'penalty': 'l2', 'C': 0.03}                                       ],
-            [sklearn.ensemble.RandomForestClassifier ,{'n_estimators': 15}                                  ],
-            [sklearn.ensemble.GradientBoostingClassifier ,{'n_estimators': 100, 'learning_rate': 0.3}       ],
+            [sklearn.svm.LinearSVC ,{'penalty': 'l2', 'C': 0.03}                                       ],
+            [sklearn.ensemble.RandomForestClassifier ,{'n_estimators': 300}                                  ],
+            [sklearn.ensemble.GradientBoostingClassifier ,{'n_estimators': 300, 'learning_rate': 0.3}       ],
             [sklearn.neighbors.KNeighborsClassifier ,{'n_neighbors': 5}                                      ],
-            [sklearn.ensemble.GradientBoostingClassifier ,{'n_estimators': 50, 'learning_rate': 0.5}        ],
-            [sklearn.neighbors.KNeighborsClassifier ,{'n_neighbors': 3}                                      ],
+            [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .3}  ],
 
                     ]
 
