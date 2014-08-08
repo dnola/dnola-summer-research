@@ -271,8 +271,7 @@ def train_slave(clips, final_validate):
     predictions = []
     metafeatures = []
 
-    sc = 0
-    auc = 0
+
     print sorted(clips[0].features.keys())
 
     keylist = clips[0].features.keys()
@@ -286,7 +285,7 @@ def train_slave(clips, final_validate):
 
             #for a in algos:
             SEED = SEED + 1
-            print "\n\n", feat, a[0].__name__, a[1]
+            print "", feat, a[0].__name__, a[1]
             clf = None
             temp = None
 
@@ -329,7 +328,6 @@ def train_slave(clips, final_validate):
                 #clf.fit(fit, seizure_fit)
 
                 #print "score" , clf.score(cv, seizure_cv)
-                print
                 if clf.score(cv, seizure_cv) < .60:
                     print "BAD SCORE"
                     raise Exception
@@ -353,23 +351,15 @@ def train_slave(clips, final_validate):
                 TemporaryMetrics.model_readable.append(("Feature:\t%s ;" % feat)+(" ; Model:%s ;" % a[0].__name__) + str(a[1]))
                 TemporaryMetrics.model_short.append(("Model:%s ;" % a[0].__name__) + str(a[1]))
 
+
+                (t_meta, t_pred) = (metafeatures[:], predictions[:])
+
+
                 metafeatures.append((feat, clf))
                 predictions.append(predict)
 
-                (t_meta, t_pred) = (metafeatures[:], predictions[:])
-                print "RESULTS THIS RUN:"
 
-                (p_sc, p_auc) = (sc, auc)
 
-                (sc, auc) = calc_results(predictions, seizure_cv, metafeatures, final_validate)
-
-                print sc, p_sc
-                print auc, p_auc
-
-                if sc<p_sc or auc<p_auc or (sc == p_sc and auc == p_auc):
-                    print "REVERTING"
-                    (metafeatures, predictions) = (t_meta, t_pred)
-                    (sc, auc) = (p_sc, p_auc)
 
             except mp.TimeoutError:
                 #models.append(0)
@@ -387,9 +377,74 @@ def train_slave(clips, final_validate):
                 print "OTHER ERROR OCCURRED: ", e.message
 
 
+    print "Choosing best metafeatures for first layer"
 
-    print "DONE training slave"
-    return (predictions, seizure_cv, models ,metafeatures)
+
+    toret_meta = []
+    toret_pred = []
+    score_list = []
+    auc_list=[]
+    best_sc = 0
+    best_auc = 0
+    for x in range(len(predictions)):
+
+        best_meta=None
+        best_pred=None
+        pred_iter = iter(predictions)
+        for meta in metafeatures:
+            #print "RESULTS THIS RUN:"
+            (meta_name, meta_model) = meta
+            pred = pred_iter.next()
+            toret_pred.append(pred)
+            toret_meta.append((meta_name, meta_model))
+            #print toret_meta
+
+            (sc, auc) = calc_results(toret_pred, seizure_cv, toret_meta, final_validate)
+            nn = str(meta[0])+": "+str(meta[1].__class__.__name__)
+            print nn, sc, auc
+            #if sc>best_sc and auc>best_auc:
+            if auc>best_auc or auc==best_auc and sc>best_sc:
+                print "New best", meta_name, sc, auc
+                best_sc = sc
+                best_auc = auc
+                best_meta = (meta_name, meta_model)
+                best_pred = pred
+
+
+            toret_pred.pop()
+            toret_meta.pop()
+
+        if best_meta!=None:
+            score_list.append(best_sc)
+            auc_list.append(best_auc)
+            nn = str(best_meta[0])+": "+str(best_meta[1].__class__.__name__)
+            for i in range(len(predictions)):
+
+                cur = str(metafeatures[i][0])+": "+str(metafeatures[i][1].__class__.__name__)
+                #print nn, cur
+
+                if nn==cur:
+                    del metafeatures[i]
+                    del predictions[i]
+                    break
+            toret_meta.append(best_meta)
+            toret_pred.append(best_pred)
+            print "top ",x , " : ", nn, "sc", best_sc, "auc", best_auc
+            print len(metafeatures)
+
+        if best_meta == None:
+            break
+
+
+    print toret_meta
+    print "DONE training slave, results: "
+    count = itertools.count()
+    scs = iter(score_list)
+    aucs = iter(auc_list)
+    for m in toret_meta:
+        nn = str(m[0])+": "+str(m[1].__class__.__name__)
+        print count.next(), ":", nn, "Score:", scs.next(), "AUC:", aucs.next()
+    return (toret_pred, seizure_cv, models ,toret_meta)
     #return (models, seizure_cv)
 
 def calc_results(predictions, seizure_cv, metafeatures, final_validate):
@@ -423,7 +478,7 @@ def reduce_feature_space(f, best):
     return f
 
 def train_master(predictions, seizure_cv, metafeatures):
-    print "training top layer"
+    #print "training top layer"
     feature_layer = []
 
     for i in range(len(predictions[0])): #for every .mat
@@ -576,13 +631,13 @@ def final_score(final_validate, clf_layer, metafeatures, best_feats = None):
 
     #print "OLD SCORE: ", clf_layer_lin.score(final_feature_layer_check, final_validation_results)
     sc = clf_layer.score(final_feature_layer_check, final_validation_results)
-    print "SCORE: ", sc
+    #print "SCORE: ", sc
 
 
     from sklearn.metrics import roc_curve, auc
     fpr, tpr, thresholds = roc_curve(final_validation_results, clf_layer.predict_proba(final_feature_layer_check)[:, 1])
     roc_auc = auc(fpr, tpr)
-    print "Area under the ROC curve : %f" % roc_auc
+    #print "Area under the ROC curve : %f" % roc_auc
 
     return (sc,roc_auc)
 
@@ -767,8 +822,8 @@ if __name__ == '__main__':
 
     FINAL_VERIFY_PERCENT= .30
     #algorithms = ModelList.models_MLP
-    algorithms = ModelList.models_best
-    #algorithms =  ModelList.models_small
+    #algorithms = ModelList.models_best
+    algorithms =  ModelList.models_small
 
     multi_proc_mode = False
 
