@@ -275,7 +275,7 @@ def train_slave(clips):
     print sorted(clips[0].features.keys())
     for feat in sorted(clips[0].features.keys()):
 
-        algos = algorithms[:] * 5
+        algos = algorithms[:]
 
 
         for a in algos:
