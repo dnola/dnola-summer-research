@@ -4,8 +4,39 @@ from sklearn import *
 from sklearn import ensemble
 import MultilayerPerceptron
 
-models_new_short = [
+models_new_short = [ #PUT IT IN ORDER OF IMPORTANCE
                 #[MultilayerPerceptron.MultilayerPerceptronManager ,{}                                       ],
+                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .01, 'n_estimators' : 100}],
+                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .001, 'n_estimators' : 100}],
+                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .1, 'n_estimators' : 30}],
+                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .3, 'n_estimators' : 50}],
+                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .5, 'n_estimators' : 10}],
+
+                [sklearn.ensemble.RandomForestClassifier, {'n_estimators':300}],
+                [sklearn.ensemble.RandomForestClassifier, {'n_estimators':20}],
+
+                [sklearn.neighbors.KNeighborsClassifier, {'n_neighbors' : 1}],
+                [sklearn.neighbors.KNeighborsClassifier, {'weights':'distance', 'n_neighbors' : 5}],
+                [sklearn.neighbors.KNeighborsClassifier, {'n_neighbors' : 10}],
+                [sklearn.neighbors.KNeighborsClassifier, {'weights':'distance', 'n_neighbors' : 25}],
+                [sklearn.neighbors.KNeighborsClassifier, {'n_neighbors' : 15}],
+                [sklearn.neighbors.KNeighborsClassifier, {'n_neighbors' : 35}],
+
+                [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .03}  ],
+                [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .3}  ],
+                [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .003}  ],
+                [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .0003}  ],
+
+                [sklearn.tree.DecisionTreeClassifier, {}],
+                [sklearn.tree.DecisionTreeClassifier, {'max_features' : 'auto'}],
+                [sklearn.tree.DecisionTreeClassifier, {'min_samples_split' : 4}],
+                [sklearn.tree.DecisionTreeClassifier, {'min_samples_leaf' : 2}],
+                [sklearn.tree.DecisionTreeClassifier, {'min_samples_split' : 2, 'min_samples_leaf' : 5}],
+                [sklearn.tree.DecisionTreeClassifier, {'min_samples_split' : 2, 'min_samples_leaf' : 3}],
+
+                [sklearn.naive_bayes.GaussianNB , {}],
+
+                [sklearn.naive_bayes.BernoulliNB , {'alpha' : .5}],
 
                 [sklearn.svm.SVC, {}    ],
                 [sklearn.svm.SVC, {'C':.03}    ],
@@ -16,48 +47,10 @@ models_new_short = [
                 [sklearn.svm.LinearSVC, {'penalty' : 'l2', 'C': .003}    ],
                 [sklearn.svm.LinearSVC, {'penalty' : 'l2', 'C': .0003}    ],
 
-
-
-                [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .03}  ],
-                [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .3}  ],
-                [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .003}  ],
-                [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .0003}  ],
-
-
-
                 [linear_model.LogisticRegression, {'penalty' : 'l1', 'C': .03}  ],
                 [linear_model.LogisticRegression, {'penalty' : 'l1', 'C': .003}  ],
                 [linear_model.LogisticRegression, {'penalty' : 'l1', 'C': .3}  ],
                 [linear_model.LogisticRegression, {'penalty' : 'l1', 'C': .0003}  ],
-
-                [sklearn.ensemble.RandomForestClassifier, {'n_estimators':20}],
-                [sklearn.ensemble.RandomForestClassifier, {'n_estimators':300}],
-
-                [sklearn.naive_bayes.GaussianNB , {}],
-
-                [sklearn.naive_bayes.BernoulliNB , {'alpha' : .5}],
-
-                [sklearn.tree.DecisionTreeClassifier, {}],
-                [sklearn.tree.DecisionTreeClassifier, {'max_features' : 'auto'}],
-                [sklearn.tree.DecisionTreeClassifier, {'min_samples_split' : 4}],
-                [sklearn.tree.DecisionTreeClassifier, {'min_samples_leaf' : 2}],
-                [sklearn.tree.DecisionTreeClassifier, {'min_samples_split' : 2, 'min_samples_leaf' : 5}],
-                [sklearn.tree.DecisionTreeClassifier, {'min_samples_split' : 2, 'min_samples_leaf' : 3}],
-
-
-                [sklearn.neighbors.KNeighborsClassifier, {'n_neighbors' : 1}],
-                [sklearn.neighbors.KNeighborsClassifier, {'weights':'distance', 'n_neighbors' : 5}],
-                [sklearn.neighbors.KNeighborsClassifier, {'n_neighbors' : 10}],
-                [sklearn.neighbors.KNeighborsClassifier, {'weights':'distance', 'n_neighbors' : 25}],
-                [sklearn.neighbors.KNeighborsClassifier, {'n_neighbors' : 15}],
-                [sklearn.neighbors.KNeighborsClassifier, {'n_neighbors' : 35}],
-
-
-                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .1, 'n_estimators' : 30}],
-                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .3, 'n_estimators' : 50}],
-                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .01, 'n_estimators' : 100}],
-                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .001, 'n_estimators' : 100}],
-                [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .5, 'n_estimators' : 10}],
 
                 ]#END
 
