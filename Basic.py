@@ -362,7 +362,7 @@ def train_slave(clips, final_validate):
                 print auc, p_auc
 
                 if sc<p_sc or auc<p_auc or (sc == p_sc and auc == p_auc):
-                    "reverting"
+                    print "reverting"
                     (metafeatures, predictions) = (t_meta, t_pred)
                     (sc, auc) = (p_sc, p_auc)
 
