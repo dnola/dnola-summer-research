@@ -83,7 +83,7 @@ def combine_features(subject):
             toadd = []
             for k in s.features.keys():
                 toadd+=s.features[k]
-            s.features = {}
+
             s.features['all_features'] = toadd
             clips.append(s)
             #print s.features
