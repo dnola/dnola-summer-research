@@ -129,7 +129,7 @@ def powerset_features(subject):
                 s.features[str(combo)]=[]
                 #print "combo", combo
                 for c in combo:
-                    print c
+                    #print c
                     s.features[str(combo)]+=s.features[c]
 
 
