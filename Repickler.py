@@ -86,7 +86,7 @@ def combine_features(subject):
             s.features = {}
             s.features['all_features'] = toadd
             clips.append(s)
-            print s.features
+            #print s.features
         cPickle.dump(clips, open(fpkl, 'wb'),-1)
 
 def add_feature(subject, location, feature, fidelity = 0):
