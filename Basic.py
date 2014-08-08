@@ -428,15 +428,15 @@ def train_master(predictions, seizure_cv, metafeatures):
 
 
     print "importances", clf_layer_lin.feature_importances_
-    best_feats = np.argsort(clf_layer_lin.feature_importances_)[-5:]
+    best_feats = np.argsort(clf_layer_lin.feature_importances_)[-10:]
     print best_feats
 
 
     feature_layer = reduce_feature_space(feature_layer, best_feats)
 
-    #clf_layer = sklearn.ensemble.RandomForestClassifier(n_estimators=700, random_state=SEED)
+    clf_layer = sklearn.ensemble.RandomForestClassifier(n_estimators=700, random_state=SEED)
     # clf_layer_lin = linear_model.LogisticRegression(penalty = 'l2', C= .3, random_state=SEED)
-    clf_layer = linear_model.LogisticRegression(penalty = 'l2', C= 1, random_state=SEED)
+    #clf_layer = linear_model.LogisticRegression(penalty = 'l2', C= 1, random_state=SEED)
     #clf_layer = MultilayerPerceptron.MultilayerPerceptronManager()
 
 
