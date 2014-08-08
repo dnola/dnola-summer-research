@@ -14,7 +14,6 @@ models_new_short = [ #PUT IT IN ORDER OF IMPORTANCE
 
                 [sklearn.ensemble.ExtraTreesClassifier, {'n_estimators':200, 'n_jobs':-1}],
                 [sklearn.ensemble.AdaBoostClassifier, {'n_estimators':200, 'n_jobs':-1}],
-                [sklearn.ensemble.BaggingClassifier, {'n_estimators':30, 'n_jobs':-1}],
 
                 [sklearn.ensemble.RandomForestClassifier, {'n_estimators':300, 'n_jobs':-1}],
                 [sklearn.ensemble.RandomForestClassifier, {'n_estimators':20, 'n_jobs':-1}],
