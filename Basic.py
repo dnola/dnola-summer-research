@@ -274,12 +274,17 @@ def train_slave(clips, final_validate):
     sc = 0
     auc = 0
     print sorted(clips[0].features.keys())
-    for feat in sorted(clips[0].features.keys()):
 
-        algos = algorithms[:]
+    keylist = clips[0].features.keys()
+    keylist.sort()
+    keylist.sort(lambda x,y: cmp(len(x), len(y)))
+
+    for feat, a in list(itertools.product(keylist, algorithms[:])):
+
+            #algos = algorithms[:]
 
 
-        for a in algos:
+            #for a in algos:
             SEED = SEED + 1
             print "\n\n", feat, a[0].__name__, a[1]
             clf = None
