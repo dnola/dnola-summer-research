@@ -81,8 +81,8 @@ def combine_features(subject):
 
         for s in pkl:
             toadd = []
-            for k, v in s.features:
-                toadd+=v
+            for k in s.features.keys():
+                toadd+=s.features[k]
             s.features = {}
             s.features['all_features'] = toadd
             clips.append(s)
