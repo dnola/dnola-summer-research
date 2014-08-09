@@ -258,6 +258,7 @@ def setup_validation_data(clips):
 
 def fit_this(clf, fit, seizure_fit):
     #print "Starting fit..."
+
     clf.fit(fit, seizure_fit)
     #print "done!"
     return clf
@@ -265,6 +266,8 @@ def fit_this(clf, fit, seizure_fit):
 
 def train_slave(clips, final_validate):
     global SEED
+    SEED = 3737
+
     print "training slave"
     (seizure_fit, seizure_cv) = setup_validation_data(clips)
     models = []
@@ -272,19 +275,16 @@ def train_slave(clips, final_validate):
     metafeatures = []
 
 
-    print sorted(clips[0].features.keys())
-
-    keylist = clips[0].features.keys()
-    keylist.sort()
+    # print sorted(clips[0].features.keys())
+    #
+    keylist = sorted(clips[0].features.keys())
+    # keylist.sort()
     keylist.sort(lambda x,y: cmp(len(x), len(y)))
 
-    for feat, a in list(itertools.product(keylist, algorithms[:])):
+    for feat, a in itertools.product(keylist, algorithms[:]):
 
             #algos = algorithms[:]
 
-
-            #for a in algos:
-            SEED = SEED + 1
             print "", feat, a[0].__name__, a[1]
             clf = None
             temp = None
@@ -294,12 +294,14 @@ def train_slave(clips, final_validate):
                     temp = a[0](**a[1])
                     clf = temp
                 except:
+
                     temp = a[0]()
 
                 try:
                     a[1]['random_state'] = SEED
                     clf = a[0](**a[1])
                 except:
+                    print "failed to set state"
                     clf = temp
             else:
                 clf = a[0](**a[1])
@@ -324,7 +326,7 @@ def train_slave(clips, final_validate):
 
 
                 #READD FOR TIMEOUT
-                clf = result.get(400)
+                clf = result.get(300)
                 #clf.fit(fit, seizure_fit)
 
                 #print "score" , clf.score(cv, seizure_cv)
@@ -532,8 +534,6 @@ def train_master(predictions, seizure_cv, metafeatures):
     clf_layer = None
     best = 0
     for a in algorithms[:]:
-
-        SEED = SEED + 1
         #print  a[0].__name__, a[1]
         clf = None
         temp = None
@@ -574,7 +574,7 @@ def train_master(predictions, seizure_cv, metafeatures):
 
     cPickle.dump((TemporaryMetrics.model_readable, clf_layer_lin.feature_importances_), open('scores.spkl', 'wb'))
 
-    print  "\tBEST MASTER:", clf_layer.__class__, "AUC Score:", best
+    print  "\tBEST MASTER:", clf_layer.__class__, "AUC Score:", best, clf_layer.get_params()
     print
     retry = False
     todel = []
@@ -876,6 +876,7 @@ if __name__ == '__main__':
     #algorithms = ModelList.models_MLP
     #algorithms = ModelList.models_best
     algorithms =  ModelList.models_small
+    #algorithms =  ModelList.models_micro
 
     multi_proc_mode = False
 

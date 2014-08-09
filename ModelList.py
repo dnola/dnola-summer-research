@@ -26,10 +26,10 @@ models_new_short = [ #PUT IT IN ORDER OF IMPORTANCE
                 [sklearn.neighbors.KNeighborsClassifier, {'n_neighbors' : 15}],
                 [sklearn.neighbors.KNeighborsClassifier, {'n_neighbors' : 35}],
 
-                [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .03}  ],
-                [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .3}  ],
-                [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .003}  ],
-                [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .0003}  ],
+                [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .03, 'tol':0.0000001}  ],
+                [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .3, 'tol':0.0000001}  ],
+                [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .003, 'tol':0.0000001}  ],
+                [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .0003, 'tol':0.0000001}  ],
 
                 [sklearn.tree.DecisionTreeClassifier, {}],
                 [sklearn.tree.DecisionTreeClassifier, {'max_features' : 'auto'}],
@@ -51,10 +51,10 @@ models_new_short = [ #PUT IT IN ORDER OF IMPORTANCE
                 [sklearn.svm.LinearSVC, {'penalty' : 'l2', 'C': .003}    ],
                 [sklearn.svm.LinearSVC, {'penalty' : 'l2', 'C': .0003}    ],
 
-                [linear_model.LogisticRegression, {'penalty' : 'l1', 'C': .03}  ],
-                [linear_model.LogisticRegression, {'penalty' : 'l1', 'C': .003}  ],
-                [linear_model.LogisticRegression, {'penalty' : 'l1', 'C': .3}  ],
-                [linear_model.LogisticRegression, {'penalty' : 'l1', 'C': .0003}  ],
+                [linear_model.LogisticRegression, {'penalty' : 'l1', 'C': .03, 'tol':0.0000001}  ],
+                [linear_model.LogisticRegression, {'penalty' : 'l1', 'C': .003, 'tol':0.0000001}  ],
+                [linear_model.LogisticRegression, {'penalty' : 'l1', 'C': .3, 'tol':0.0000001}  ],
+                [linear_model.LogisticRegression, {'penalty' : 'l1', 'C': .0003, 'tol':0.0000001}  ],
 
                 ]#END
 
@@ -200,7 +200,14 @@ models_small = [
             [sklearn.ensemble.RandomForestClassifier ,{'n_estimators': 300}                                  ],
             [sklearn.ensemble.GradientBoostingClassifier ,{'n_estimators': 300, 'learning_rate': 0.3}       ],
             [sklearn.neighbors.KNeighborsClassifier ,{'n_neighbors': 5}                                      ],
-            [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .3}  ],
+            [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .3, 'tol':0.0000001}  ],
+
+                    ]
+
+models_micro = [
+            [sklearn.ensemble.RandomForestClassifier ,{'n_estimators': 300}                                  ],
+            [sklearn.neighbors.KNeighborsClassifier ,{'n_neighbors': 5}                                      ],
+            [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .3, 'tol':0.0000001}  ],
 
                     ]
 
