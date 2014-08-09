@@ -564,7 +564,8 @@ def train_master(predictions, seizure_cv, metafeatures):
 
         clf_layer.fit(feature_layer_train, seizure_cv_train)
 
-        score = clf_layer.score(feature_layer_valid, seizure_cv_valid)
+        #score = clf_layer.score(feature_layer_valid, seizure_cv_valid)
+        score = score_model(seizure_cv_valid, feature_layer_valid, clf_layer)
         if score>best:
             #print "New best master: ", score, a[0].__name__, a[1]
             best=score
@@ -573,7 +574,7 @@ def train_master(predictions, seizure_cv, metafeatures):
 
     cPickle.dump((TemporaryMetrics.model_readable, clf_layer_lin.feature_importances_), open('scores.spkl', 'wb'))
 
-    print  "\tBEST MASTER:", clf_layer.__class__, "Score:", best
+    print  "\tBEST MASTER:", clf_layer.__class__, "AUC Score:", best
     print
     retry = False
     todel = []
@@ -679,19 +680,20 @@ def final_score(final_validate, clf_layer, metafeatures, best_feats = None):
     sc = clf_layer.score(final_feature_layer_check, final_validation_results)
     #print "SCORE: ", sc
 
+    return (sc, score_model(final_validation_results, final_feature_layer_check, clf_layer))
 
+
+def score_model(actual, feature_set, clf_layer):
     from sklearn.metrics import roc_curve, auc
     fpr, tpr, thresholds = None, None, None
     try:
-        fpr, tpr, thresholds = roc_curve(final_validation_results, clf_layer.predict_proba(final_feature_layer_check)[:, 1])
+        fpr, tpr, thresholds = roc_curve(actual, clf_layer.predict_proba(feature_set)[:, 1])
     except:
-        fpr, tpr, thresholds = roc_curve(final_validation_results, clf_layer.predict(final_feature_layer_check))
+        fpr, tpr, thresholds = roc_curve(actual, clf_layer.predict(feature_set))
     roc_auc = auc(fpr, tpr)
     #print "Area under the ROC curve : %f" % roc_auc
 
-    return (sc,roc_auc)
-
-
+    return roc_auc
 
 def analyze_dataset(clips, test_data, early=False):
     print "Begin analysis:   Training Data Size:", len(clips), "Final Test Data Size:", len(test_data)
