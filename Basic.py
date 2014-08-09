@@ -574,7 +574,7 @@ def train_master(predictions, seizure_cv, metafeatures):
 
     cPickle.dump((TemporaryMetrics.model_readable, clf_layer_lin.feature_importances_), open('scores.spkl', 'wb'))
 
-    print  "\tBEST MASTER:", clf_layer.__class__, "AUC Score:", best
+    print  "\tBEST MASTER:", clf_layer.__class__, "AUC Score:", best, clf_layer.get_params()
     print
     retry = False
     todel = []
