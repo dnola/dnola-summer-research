@@ -507,7 +507,7 @@ def train_master(predictions, seizure_cv, metafeatures):
     seizure_cv_train = seizure_cv[:-num_valid]
 
 
-    print "LENGTHS: ", len(feature_layer_valid), len(feature_layer_train), len(seizure_cv_valid), len(seizure_cv_train)
+    #print "LENGTHS: ", len(feature_layer_valid), len(feature_layer_train), len(seizure_cv_valid), len(seizure_cv_train)
     #calculate_similarities(predictions)
 
     #print seizure_cv
@@ -574,7 +574,7 @@ def train_master(predictions, seizure_cv, metafeatures):
     cPickle.dump((TemporaryMetrics.model_readable, clf_layer_lin.feature_importances_), open('scores.spkl', 'wb'))
 
     print  "\tBEST MASTER:", clf_layer.__class__, "Score:", best
-
+    print
     retry = False
     todel = []
     #print clf_layer_lin.feature_importances_
