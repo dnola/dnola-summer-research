@@ -495,27 +495,31 @@ def train_master(predictions, seizure_cv, metafeatures):
     #print seizure_cv
     #print feature_layer
 
+    for fi in range(len(feature_layer)):
+        v = feature_layer[fi]
+        v = [ x if isinstance(x, (float,int,long)) else 0 for x in v]
+        feature_layer[fi] = v
+
     num_valid = int(-(.2*len(feature_layer)))
     feature_layer_valid = feature_layer[-num_valid:]
     feature_layer_train = feature_layer[:-num_valid]
     seizure_cv_valid = seizure_cv[-num_valid:]
     seizure_cv_train = seizure_cv[:-num_valid]
 
+
+    print "LENGTHS: ", len(feature_layer_valid), len(feature_layer_train), len(seizure_cv_valid), len(seizure_cv_train)
     #calculate_similarities(predictions)
 
     #print seizure_cv
 
-    for fi in range(len(feature_layer)):
-        v = feature_layer[fi]
-        v = [ x if isinstance(x, (float,int,long)) else 0 for x in v]
-        feature_layer[fi] = v
+
 
 
     #print feature_layer
 
 
     clf_layer_lin = sklearn.ensemble.RandomForestClassifier(n_estimators=100, random_state=SEED)
-    clf_layer_lin.fit(feature_layer, seizure_cv)
+    clf_layer_lin.fit(feature_layer_train, seizure_cv_train)
 
 
     #print "importances", clf_layer_lin.feature_importances_
@@ -523,7 +527,7 @@ def train_master(predictions, seizure_cv, metafeatures):
     #print best_feats
 
 
-    feature_layer = reduce_feature_space(feature_layer, best_feats)
+    feature_layer = reduce_feature_space(feature_layer_train, best_feats)
 
     clf_layer = None
     best = 0
