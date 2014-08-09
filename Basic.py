@@ -404,7 +404,7 @@ def train_slave(clips, final_validate):
             print nn, sc, auc
             #if sc>best_sc and auc>best_auc:
             if auc>best_auc or auc==best_auc and sc>best_sc:
-                print "New best", meta_name, sc, auc
+                print "NEW BEST:", meta_name, sc, auc
                 best_sc = sc
                 best_auc = auc
                 best_meta = (meta_name, meta_model)
@@ -478,6 +478,7 @@ def reduce_feature_space(f, best):
     return f
 
 def train_master(predictions, seizure_cv, metafeatures):
+    global SEED
     #print "training top layer"
     feature_layer = []
 
@@ -494,6 +495,11 @@ def train_master(predictions, seizure_cv, metafeatures):
     #print seizure_cv
     #print feature_layer
 
+    num_valid = int(-(.2*len(feature_layer)))
+    feature_layer_valid = feature_layer[-num_valid:]
+    feature_layer_train = feature_layer[:-num_valid]
+    seizure_cv_valid = seizure_cv[-num_valid:]
+    seizure_cv_train = seizure_cv[:-num_valid]
 
     #calculate_similarities(predictions)
 
@@ -519,15 +525,51 @@ def train_master(predictions, seizure_cv, metafeatures):
 
     feature_layer = reduce_feature_space(feature_layer, best_feats)
 
-    clf_layer = sklearn.ensemble.ExtraTreesClassifier(n_estimators=700, random_state=SEED)
-    # clf_layer_lin = linear_model.LogisticRegression(penalty = 'l2', C= .3, random_state=SEED)
-    #clf_layer = linear_model.LogisticRegression(penalty = 'l2', C= 1, random_state=SEED)
-    #clf_layer = MultilayerPerceptron.MultilayerPerceptronManager()
+    clf_layer = None
+    best = 0
+    for a in algorithms[:]:
+
+        SEED = SEED + 1
+        #print  a[0].__name__, a[1]
+        clf = None
+        temp = None
+
+        if not 'KNeighborsClassifier' in a[0].__name__:
+            try:
+                temp = a[0](**a[1])
+                clf = temp
+            except:
+                temp = a[0]()
+
+            try:
+                a[1]['random_state'] = SEED
+                clf = a[0](**a[1])
+            except:
+                clf = temp
+        else:
+            clf = a[0](**a[1])
 
 
-    clf_layer.fit(feature_layer, seizure_cv)
+        temp = clf_layer
+        #clf_layer = sklearn.ensemble.ExtraTreesClassifier(n_estimators=700, random_state=SEED)
+        # clf_layer_lin = linear_model.LogisticRegression(penalty = 'l2', C= .3, random_state=SEED)
+        #clf_layer = linear_model.LogisticRegression(penalty = 'l2', C= 1, random_state=SEED)
+        #clf_layer = MultilayerPerceptron.MultilayerPerceptronManager()
+
+        clf_layer = clf
+
+        clf_layer.fit(feature_layer_train, seizure_cv_train)
+
+        score = clf_layer.score(feature_layer_valid, seizure_cv_valid)
+        if score>best:
+            #print "New best master: ", score, a[0].__name__, a[1]
+            best=score
+        else:
+            clf_layer = temp
 
     cPickle.dump((TemporaryMetrics.model_readable, clf_layer_lin.feature_importances_), open('scores.spkl', 'wb'))
+
+    print  "\tBEST MASTER:", clf_layer.__class__, "Score:", best
 
     retry = False
     todel = []
@@ -635,7 +677,11 @@ def final_score(final_validate, clf_layer, metafeatures, best_feats = None):
 
 
     from sklearn.metrics import roc_curve, auc
-    fpr, tpr, thresholds = roc_curve(final_validation_results, clf_layer.predict_proba(final_feature_layer_check)[:, 1])
+    fpr, tpr, thresholds = None, None, None
+    try:
+        fpr, tpr, thresholds = roc_curve(final_validation_results, clf_layer.predict_proba(final_feature_layer_check)[:, 1])
+    except:
+        fpr, tpr, thresholds = roc_curve(final_validation_results, clf_layer.predict(final_feature_layer_check))
     roc_auc = auc(fpr, tpr)
     #print "Area under the ROC curve : %f" % roc_auc
 
