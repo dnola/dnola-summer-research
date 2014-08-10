@@ -310,7 +310,7 @@ def train_slave(clips, final_validate):
     keylist.sort(lambda x,y: cmp(len(x), len(y)))
 
     classifiers = []
-    pool = VisiblePool(16)
+    pool = mp.Pool(8)
     for feat, a in itertools.product(keylist, algorithms[:]):
 
             (clf, fit, cv) = initialize_model_data(feat, a, clips)
@@ -395,7 +395,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
 
         meta_results = []
 
-        pool = VisiblePool(20)
+        pool = mp.Pool(8)
         for meta in metafeatures:
             #print "RESULTS THIS RUN:"
             (meta_name, meta_model) = meta
@@ -428,7 +428,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
                     #print r
                     (sc, auc, name, meta_model, meta_name) = r.get(False)
                 except Exception as e:
-                    if len(e.message)>3:
+                    if len(e.message)>5:
                         print e.message
                     #print "not ready"
                     continue
@@ -437,7 +437,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
                 # (sc, auc, name, meta_model, meta_name) = r.get()
 
 
-                print "READY MASTER:", name, "REMAINING: ", len(meta_results)-1
+                print "OBTAINED RESULTS:", name, "REMAINING: ", len(meta_results)-1
 
                 if auc>best_auc or auc==best_auc and sc>best_sc:
                     print "NEW BEST:", meta_name, sc, auc
@@ -565,7 +565,7 @@ def train_master(predictions, seizure_cv, metafeatures):
 
 
     #print master_algos
-    pool = VisiblePool(16)
+    #pool = mp.Pool(8)
     for a in master_algos:
         clf = None
         temp = None
@@ -585,9 +585,9 @@ def train_master(predictions, seizure_cv, metafeatures):
         possible_master_results.append(result)
 
 
-    print "Waiting for masters to train..."
+    print "\tWAIT for masters to train..."
 
-    pool.close()
+    #pool.close()
     best_clf = None
     while len(possible_master_results)>0:
         todel = []
@@ -595,7 +595,8 @@ def train_master(predictions, seizure_cv, metafeatures):
             try:
                 clf_layer = possible_master_results[i]#.get(False)
             except Exception as e:
-                #print e.message
+                if len(e.message)>5:
+                    print e.message
                 #print "not ready"
                 continue
 
@@ -615,7 +616,7 @@ def train_master(predictions, seizure_cv, metafeatures):
 
     #cPickle.dump((TemporaryMetrics.model_readable, clf_layer_lin.feature_importances_), open('scores.spkl', 'wb'))
 
-    print  "\tBEST MASTER:", best_clf.__class__, "AUC Score:", best, best_clf.get_params()
+    print  "\tDONE - BEST MASTER:", best_clf.__class__, "AUC Score:", best, best_clf.get_params()
     print
     retry = False
     todel = []
