@@ -320,9 +320,9 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
 
     """
 
-    datasets = ( 0, 0, 0)
-    test = cPickle.load(open("SummerResearchData/"+'Dog_1'+'_TEST.pkl', 'rb'))
-    train = cPickle.load(open("SummerResearchData/"+'Dog_1'+'.pkl', 'rb'))
+    datasets = load_data(dataset)
+    test = cPickle.load(open("SummerResearchData/"+'Patient_2'+'_TEST.pkl', 'rb'))
+    train = cPickle.load(open("SummerResearchData/"+'Patient_2'+'.pkl', 'rb'))
     import random
     random.shuffle(train)
 
@@ -331,7 +331,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
 
     for c in train:
         print c.features
-        features.append(c.features['channel_variances']+c.features['variance_over_time_10'])
+        features.append(c.features['channel_variances'])
 
         if c.seizure:
             classes.append(1)
@@ -373,7 +373,7 @@ def test_SdA(finetune_lr=0.1, pretraining_epochs=15,
     numpy_rng = numpy.random.RandomState(453)
     print '... building the model'
     # construct the stacked denoising autoencoder class
-    sda = SdA(numpy_rng=numpy_rng, n_ins=176,
+    sda = SdA(numpy_rng=numpy_rng, n_ins=16,
               hidden_layers_sizes=[100, 20, 10],
               n_outs=10)
 
