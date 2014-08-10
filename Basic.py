@@ -25,6 +25,7 @@ from sklearn import *
 from sklearn import ensemble
 import operator
 import MultilayerPerceptron
+from VisiblePool import VisiblePool
 
 SEED = 3737
 
@@ -42,7 +43,6 @@ class timeout:
         signal.alarm(self.seconds)
     def __exit__(self, type, value, traceback):
         signal.alarm(0)
-
 
 class TemporaryMetrics:
     AUC_Mappings = []
@@ -94,8 +94,6 @@ class TemporaryMetrics:
 
         for x in sorted_x:
             print x[0], x[1]
-
-
 
 class EEGSegment:
     features = {
@@ -161,13 +159,6 @@ class EEGSegment:
 
         self.data = []
         print self.features
-
-
-
-
-
-
-
 
 def run_analysis(clips, test_data, early=False):
     result = analyze_dataset(clips, test_data, early)
@@ -255,13 +246,50 @@ def setup_validation_data(clips):
 
 
 
+def initialize_model_state(a):
+    clf = None
+    temp = None
 
-def fit_this(clf, fit, seizure_fit):
+    if not 'KNeighborsClassifier' in a[0].__name__ and not 'GradientBoostingClassifier' in a[0].__name__:
+        try:
+            temp = a[0](**a[1])
+            clf = temp
+        except:
+
+            temp = a[0]()
+
+        try:
+            a[1]['random_state'] = SEED
+            clf = a[0](**a[1])
+        except:
+            #print "failed to set state", a[0].__name__
+            clf = temp
+    else:
+        clf = a[0](**a[1])
+
+    return clf
+
+def initialize_model_data(feat, a, clips):
+    print "", feat, a[0].__name__, a[1]
+
+    clf = initialize_model_state(a)
+    fit = []
+    cv = []
+    for c in clips[::2]:
+        fit.append(c.features[feat])
+
+    for c in clips[1::2]:
+        cv.append(c.features[feat])
+
+    return (clf, fit, cv)
+
+
+def fit_this(clf, fit, seizure_fit, cv, feat):
     #print "Starting fit..."
 
     clf.fit(fit, seizure_fit)
     #print "done!"
-    return clf
+    return (clf, cv, feat)
 
 
 def train_slave(clips, final_validate):
@@ -281,107 +309,73 @@ def train_slave(clips, final_validate):
     # keylist.sort()
     keylist.sort(lambda x,y: cmp(len(x), len(y)))
 
+    classifiers = []
+    pool = VisiblePool(16)
     for feat, a in itertools.product(keylist, algorithms[:]):
 
-            #algos = algorithms[:]
-
-            print "", feat, a[0].__name__, a[1]
-            clf = None
-            temp = None
-
-            if not 'KNeighborsClassifier' in a[0].__name__:
-                try:
-                    temp = a[0](**a[1])
-                    clf = temp
-                except:
-
-                    temp = a[0]()
-
-                try:
-                    a[1]['random_state'] = SEED
-                    clf = a[0](**a[1])
-                except:
-                    print "failed to set state"
-                    clf = temp
-            else:
-                clf = a[0](**a[1])
-
-
-            #if 'variances' in feat:
-            #    clf = linear_model.LogisticRegression(penalty = 'l1', C=.03)
-
-            fit = []
-            cv = []
-            for c in clips[::2]:
-                fit.append(c.features[feat])
-
-            for c in clips[1::2]:
-                cv.append(c.features[feat])
-
+            (clf, fit, cv) = initialize_model_data(feat, a, clips)
 
             try:
-                pool = mp.Pool(1)
-                result = pool.apply_async(fit_this, (clf,fit,seizure_fit,))
-                pool.close()
+
+                result = pool.apply_async(fit_this, (clf,fit,seizure_fit,cv, feat,))
 
 
-                #READD FOR TIMEOUT
-                clf = result.get(300)
-                #clf.fit(fit, seizure_fit)
-
-                #print "score" , clf.score(cv, seizure_cv)
-                if clf.score(cv, seizure_cv) < .60:
-                    print "BAD SCORE"
-                    raise Exception
-                models.append(clf)
-
-
-
-                predict = None
-                try:
-                    predict = clf.predict_proba(cv)
-                    predict = [1.0-x[0] for x in predict]
-                    #print predict
-                except Exception as e:
-                    print e.message
-                    predict = clf.predict(cv)
-
-                #print "Feature: ", feat, "Model: ", a[0].__name__,  " score: ", clf.score(cv, seizure_cv)
-                TemporaryMetrics.model_titles.append(("Feature:\t%s ;" % feat).ljust(50)+("Model:\t%s ;" % a[0].__name__).ljust(40) + ("Score: %s " % round(clf.score(cv, seizure_cv),5)).ljust(25) + str(str(a[1])))
-
-                #TemporaryMetrics.model_meta.append(("Feature:%s ;" % feat)+("Model:%s ;" % a[0].__name__) + str(a[1]))
-                TemporaryMetrics.model_readable.append(("Feature:\t%s ;" % feat)+(" ; Model:%s ;" % a[0].__name__) + str(a[1]))
-                TemporaryMetrics.model_short.append(("Model:%s ;" % a[0].__name__) + str(a[1]))
-
-
-                (t_meta, t_pred) = (metafeatures[:], predictions[:])
-
-
-                metafeatures.append((feat, clf))
-                predictions.append(predict)
-
-
-
-
+                classifiers.append(result)
             except mp.TimeoutError:
-                #models.append(0)
-                #predictions.append([0] * len(cv))
-
-
-                #TemporaryMetrics.model_titles.append(("BROKEN Feature:\t%s ;" % feat).ljust(50)+("Model:\t%s ;" % a[0].__name__).ljust(40) + ("Score: BROKEN ").ljust(25) + str(str(a[1])))
-
-                #TemporaryMetrics.model_meta.append(("Feature:%s ;" % feat)+("Model:%s ;" % a[0].__name__) + str(a[1]))
-
-                #TemporaryMetrics.model_short.append(("BROKEN Model:%s ;" % a[0].__name__) + str(a[1]))
                 print "TIMED OUT"
                 #exit()
             except Exception as e:
                 print "OTHER ERROR OCCURRED: ", e.message
 
+    pool.close()
+    print "Waiting for results..."
+    while len(classifiers) > 0:
 
+        for clf_idx in range(len(classifiers)):
+
+
+            (clf, cv, feat) = (None,None, None)
+
+            try:
+                (clf, cv, feat) = classifiers[clf_idx].get(False)
+                print "READY: ", clf.__class__.__name__, " REMAINING: ", len(classifiers)-1
+
+            except:
+                continue
+
+            models.append(clf)
+
+            predict = None
+            try:
+                predict = clf.predict_proba(cv)
+                predict = [1.0-x[0] for x in predict]
+                print "predict", predict
+            except Exception as e:
+                print e.message
+                predict = clf.predict(cv)
+
+            (t_meta, t_pred) = (metafeatures[:], predictions[:])
+            metafeatures.append((feat, clf))
+            predictions.append(predict)
+
+            del classifiers[clf_idx]
+
+    (toret_pred, toret_meta, score_list, auc_list) = generate_best_first_layer(predictions,metafeatures, seizure_cv, final_validate)
+
+
+    print toret_meta
+    print "DONE training slave, results: "
+    count = itertools.count()
+    scs = iter(score_list)
+    aucs = iter(auc_list)
+    for m in toret_meta:
+        nn = str(m[0])+": "+str(m[1].__class__.__name__)
+        print count.next(), ":", nn, "Score:", scs.next(), "AUC:", aucs.next()
+    return (toret_pred, seizure_cv, models ,toret_meta)
+    #return (models, seizure_cv)
+
+def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_validate):
     print "Choosing best metafeatures for first layer"
-
-
     toret_meta = []
     toret_pred = []
     score_list = []
@@ -389,10 +383,15 @@ def train_slave(clips, final_validate):
     best_sc = 0
     best_auc = 0
     for x in range(len(predictions)):
-
+        print "Model Number: ", x
         best_meta=None
         best_pred=None
         pred_iter = iter(predictions)
+
+
+        meta_results = []
+
+        pool = VisiblePool(16)
         for meta in metafeatures:
             #print "RESULTS THIS RUN:"
             (meta_name, meta_model) = meta
@@ -401,20 +400,43 @@ def train_slave(clips, final_validate):
             toret_meta.append((meta_name, meta_model))
             #print toret_meta
 
-            (sc, auc) = calc_results(toret_pred, seizure_cv, toret_meta, final_validate)
-            nn = str(meta[0])+": "+str(meta[1].__class__.__name__)
-            print nn, sc, auc
-            #if sc>best_sc and auc>best_auc:
-            if auc>best_auc or auc==best_auc and sc>best_sc:
-                print "NEW BEST:", meta_name, sc, auc
-                best_sc = sc
-                best_auc = auc
-                best_meta = (meta_name, meta_model)
-                best_pred = pred
 
+            result = pool.apply_async(calc_results, (toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:],meta_model))
+
+
+            meta_results.append(result)
 
             toret_pred.pop()
             toret_meta.pop()
+        pool.close()
+
+        while len(meta_results) > 0:
+            for result_idx in range(len(meta_results)):
+
+                (sc, auc, name, meta_model) = (None, None, None, None)
+
+
+                #print len(meta_results), result_idx
+
+                try:
+                    r = meta_results[result_idx]
+                    #print r
+                    (sc, auc, name, meta_model) = r.get(False)
+                except Exception as e:
+                    #print e.message
+                    #print "not ready"
+                    continue
+
+                print "READY MASTER:", name, "REMAINING: ", len(meta_results)-1
+
+                if auc>best_auc or auc==best_auc and sc>best_sc:
+                    print "NEW BEST:", meta_name, sc, auc
+                    best_sc = sc
+                    best_auc = auc
+                    best_meta = (meta_name, meta_model)
+                    best_pred = pred
+
+                del meta_results[result_idx]
 
         if best_meta!=None:
             score_list.append(best_sc)
@@ -437,21 +459,15 @@ def train_slave(clips, final_validate):
         if best_meta == None:
             break
 
+    print "Done choosing metafeatures"
+    return (toret_pred, toret_meta, score_list, auc_list)
 
-    print toret_meta
-    print "DONE training slave, results: "
-    count = itertools.count()
-    scs = iter(score_list)
-    aucs = iter(auc_list)
-    for m in toret_meta:
-        nn = str(m[0])+": "+str(m[1].__class__.__name__)
-        print count.next(), ":", nn, "Score:", scs.next(), "AUC:", aucs.next()
-    return (toret_pred, seizure_cv, models ,toret_meta)
-    #return (models, seizure_cv)
-
-def calc_results(predictions, seizure_cv, metafeatures, final_validate):
+def calc_results(predictions, seizure_cv, metafeatures, final_validate, meta_model = None):
     (clf_layer, clf_layer_lin, best_feats) = train_master(predictions, seizure_cv, metafeatures)
-    return final_score(final_validate, clf_layer, metafeatures)
+    if meta_model == None:
+        return final_score(final_validate, clf_layer, metafeatures)
+    else:
+        return final_score(final_validate, clf_layer, metafeatures)+ (meta_model,)
 
 def calculate_similarities(ft):
     meta = iter(TemporaryMetrics.model_readable)
@@ -465,9 +481,6 @@ def calculate_similarities(ft):
             diff = np.linalg.norm(np.asarray(v)-np.asarray(otv))
             print "\t", ot_meta.next(), diff
 
-
-
-
 def reduce_feature_space(f, best):
     return f
     for fi in range(len(f)):
@@ -479,9 +492,7 @@ def reduce_feature_space(f, best):
         print f[fi]
     return f
 
-def train_master(predictions, seizure_cv, metafeatures):
-    global SEED
-    #print "training top layer"
+def organize_master_data(predictions, seizure_cv):
     feature_layer = []
 
     for i in range(len(predictions[0])): #for every .mat
@@ -509,16 +520,16 @@ def train_master(predictions, seizure_cv, metafeatures):
     seizure_cv_train = seizure_cv[:-num_valid]
 
 
-    #print "LENGTHS: ", len(feature_layer_valid), len(feature_layer_train), len(seizure_cv_valid), len(seizure_cv_train)
-    #calculate_similarities(predictions)
-
-    #print seizure_cv
+    return (feature_layer_valid, feature_layer_train, seizure_cv_valid, seizure_cv_train)
 
 
+def run_master_proc(clf_layer, feature_layer_train, seizure_cv_train):
+    clf_layer.fit(feature_layer_train, seizure_cv_train)
+    return clf_layer
 
+def train_master(predictions, seizure_cv, metafeatures):
 
-    #print feature_layer
-
+    (feature_layer_valid, feature_layer_train, seizure_cv_valid, seizure_cv_train) = organize_master_data(predictions, seizure_cv)
 
     clf_layer_lin = sklearn.ensemble.RandomForestClassifier(n_estimators=100, random_state=SEED)
     clf_layer_lin.fit(feature_layer_train, seizure_cv_train)
@@ -533,48 +544,62 @@ def train_master(predictions, seizure_cv, metafeatures):
 
     clf_layer = None
     best = 0
-    for a in algorithms[:]:
-        #print  a[0].__name__, a[1]
+
+    possible_master_results = []
+    master_algos = algorithms[:]
+
+
+
+
+    #print master_algos
+    pool = VisiblePool(16)
+    for a in master_algos:
         clf = None
         temp = None
 
-        if not 'KNeighborsClassifier' in a[0].__name__:
-            try:
-                temp = a[0](**a[1])
-                clf = temp
-            except:
-                temp = a[0]()
-
-            try:
-                a[1]['random_state'] = SEED
-                clf = a[0](**a[1])
-            except:
-                clf = temp
-        else:
-            clf = a[0](**a[1])
-
+        clf = initialize_model_state(a)
 
         temp = clf_layer
-        #clf_layer = sklearn.ensemble.ExtraTreesClassifier(n_estimators=700, random_state=SEED)
-        # clf_layer_lin = linear_model.LogisticRegression(penalty = 'l2', C= .3, random_state=SEED)
-        #clf_layer = linear_model.LogisticRegression(penalty = 'l2', C= 1, random_state=SEED)
-        #clf_layer = MultilayerPerceptron.MultilayerPerceptronManager()
 
         clf_layer = clf
 
-        clf_layer.fit(feature_layer_train, seizure_cv_train)
 
-        #score = clf_layer.score(feature_layer_valid, seizure_cv_valid)
-        score = score_model(seizure_cv_valid, feature_layer_valid, clf_layer)
-        if score>best:
-            #print "New best master: ", score, a[0].__name__, a[1]
-            best=score
-        else:
-            clf_layer = temp
 
-    cPickle.dump((TemporaryMetrics.model_readable, clf_layer_lin.feature_importances_), open('scores.spkl', 'wb'))
 
-    print  "\tBEST MASTER:", clf_layer.__class__, "AUC Score:", best, clf_layer.get_params()
+        #result = pool.apply_async(run_master_proc, (clf_layer, feature_layer_train, seizure_cv_train,))
+        result = run_master_proc(clf_layer, feature_layer_train, seizure_cv_train)
+
+        possible_master_results.append(result)
+
+
+    print "Waiting for masters to train..."
+
+    pool.close()
+    best_clf = None
+    while len(possible_master_results)>0:
+        for i in range(len(possible_master_results)):
+            try:
+                clf_layer = possible_master_results[i]#.get(False)
+            except Exception as e:
+                #print e.message
+                #print "not ready"
+                continue
+
+            #print "TOP READY: ", clf_layer.__class__.__name__, "REMAINING: ", len(possible_master_results)-1
+            #score = clf_layer.score(feature_layer_valid, seizure_cv_valid)
+            score = score_model(seizure_cv_valid, feature_layer_valid, clf_layer)
+            if score>best:
+                #print "New best master: ", score, a[0].__name__, a[1]
+                best_clf = clf_layer
+                best=score
+
+            del possible_master_results[i]
+
+
+
+    #cPickle.dump((TemporaryMetrics.model_readable, clf_layer_lin.feature_importances_), open('scores.spkl', 'wb'))
+
+    print  "\tBEST MASTER:", best_clf.__class__, "AUC Score:", best, best_clf.get_params()
     print
     retry = False
     todel = []
@@ -585,24 +610,7 @@ def train_master(predictions, seizure_cv, metafeatures):
             retry = True
 
 
-    #############################################################################
-    #REMOVE TO ENABLE PARING:
-    retry = False
-    #
-
-
-    if retry:
-        for index in sorted(todel, reverse=True):
-            #print "deleting: ", metafeatures[index][0],metafeatures[index][1].__class__.__name__ , clf_layer_lin.feature_importances_[index]
-            del predictions[index]
-            del metafeatures[index]
-            del TemporaryMetrics.model_titles[index]
-            del TemporaryMetrics.model_short[index]
-
-        return train_master(predictions, seizure_cv, metafeatures)
-
-    return (clf_layer, clf_layer_lin, best_feats)
-
+    return (best_clf, clf_layer_lin, best_feats)
 
 def generate_test_layer(test_data, metafeatures):
     toret = []
@@ -658,7 +666,6 @@ def generate_test_layer(test_data, metafeatures):
     #    print f
     return (final, metafeatures)
 
-
 def generate_validation_results(data):
     toret = []
     for d in data:
@@ -667,8 +674,6 @@ def generate_validation_results(data):
         else:
             toret.append(0)
     return toret
-
-
 
 def final_score(final_validate, clf_layer, metafeatures, best_feats = None):
     (final_feature_layer_check, metafeatures) = generate_test_layer(final_validate, metafeatures)
@@ -680,8 +685,7 @@ def final_score(final_validate, clf_layer, metafeatures, best_feats = None):
     sc = clf_layer.score(final_feature_layer_check, final_validation_results)
     #print "SCORE: ", sc
 
-    return (sc, score_model(final_validation_results, final_feature_layer_check, clf_layer))
-
+    return (sc, score_model(final_validation_results, final_feature_layer_check, clf_layer), clf_layer.__class__.__name__)
 
 def score_model(actual, feature_set, clf_layer):
     from sklearn.metrics import roc_curve, auc
@@ -697,6 +701,10 @@ def score_model(actual, feature_set, clf_layer):
 
 def analyze_dataset(clips, test_data, early=False):
     print "Begin analysis:   Training Data Size:", len(clips), "Final Test Data Size:", len(test_data)
+
+    import time
+
+    start = time.time()
 
     if early:
         for c in clips:
@@ -739,20 +747,13 @@ def analyze_dataset(clips, test_data, early=False):
 
     final_predict = [1.0-x[0] for x in final_predict]
 
-    (sc, auc) = final_score(final_validate, clf_layer, metafeatures, best_feats)
+    (sc, auc, name) = final_score(final_validate, clf_layer, metafeatures, best_feats)
 
-    #print clf_layer.score(final_feature_layer, seizure_final)
-    #print len(final_predict)
-    #print final_predict
+    end = time.time()
 
-    #print "Coefficients: ", clf_layer.coef_
-
-    # #TemporaryMetrics.feature_scores_raw.append(clf_layer.coef_)
-    #
-    # TemporaryMetrics.AUC_Mappings.append([len(clips)+FINAL_VERIFY_SIZE, roc_auc])
-
+    elapsed = end - start
+    print "ELAPSED TIME:", elapsed
     return final_predict
-
 
 def procc(result_q):
     first_predictions = []
@@ -823,7 +824,6 @@ def procc(result_q):
         result_q.put(final)
     return all_predictions
 
-
 def run_multi():
     result_q = Queue()
 
@@ -848,8 +848,6 @@ def run_multi():
     print result_list
     print np.mean(result_list)
 
-
-
 def run_single():
     all_predictions = procc( Queue())
     #append_predictions(all_predictions)
@@ -859,7 +857,7 @@ if __name__ == '__main__':
 
     early_mode = False
     SUBJECTS = ['Dog_1','Dog_2','Dog_3','Dog_4','Patient_1','Patient_2','Patient_3','Patient_4','Patient_5','Patient_6','Patient_7','Patient_8']
-    SUBJECTS = SUBJECTS[3:4]
+    SUBJECTS = SUBJECTS[0:1]
 
     restart = False
 
@@ -875,7 +873,10 @@ if __name__ == '__main__':
     FINAL_VERIFY_PERCENT= .30
     #algorithms = ModelList.models_MLP
     #algorithms = ModelList.models_best
-    algorithms =  ModelList.models_small
+
+
+    algorithms = ModelList.models_new_short
+    #algorithms =  ModelList.models_small
     #algorithms =  ModelList.models_micro
 
     multi_proc_mode = False
