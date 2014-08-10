@@ -331,6 +331,7 @@ def train_slave(clips, final_validate):
     print "Waiting for results..."
     while len(classifiers) > 0:
 
+        todel = []
         for clf_idx in range(len(classifiers)):
 
 
@@ -349,16 +350,19 @@ def train_slave(clips, final_validate):
             try:
                 predict = clf.predict_proba(cv)
                 predict = [1.0-x[0] for x in predict]
-                print "predict", predict
+                #print "predict", predict
             except Exception as e:
-                print e.message
+                #print e.message
                 predict = clf.predict(cv)
 
             (t_meta, t_pred) = (metafeatures[:], predictions[:])
             metafeatures.append((feat, clf))
             predictions.append(predict)
 
-            del classifiers[clf_idx]
+            todel.append(clf_idx)
+
+        for d in reversed(sorted(todel)):
+            del classifiers[d]
 
     (toret_pred, toret_meta, score_list, auc_list) = generate_best_first_layer(predictions,metafeatures, seizure_cv, final_validate)
 
@@ -391,7 +395,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
 
         meta_results = []
 
-        pool = VisiblePool(16)
+        pool = VisiblePool(20)
         for meta in metafeatures:
             #print "RESULTS THIS RUN:"
             (meta_name, meta_model) = meta
@@ -401,7 +405,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
             #print toret_meta
 
 
-            result = pool.apply_async(calc_results, (toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:],meta_model))
+            result = pool.apply_async(calc_results, (toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:],meta_model, meta_name))
 
 
             meta_results.append(result)
@@ -411,9 +415,10 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
         pool.close()
 
         while len(meta_results) > 0:
+            todel = []
             for result_idx in range(len(meta_results)):
 
-                (sc, auc, name, meta_model) = (None, None, None, None)
+                (sc, auc, name, meta_model, meta_name) = (None, None, None, None, None)
 
 
                 #print len(meta_results), result_idx
@@ -421,11 +426,16 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
                 try:
                     r = meta_results[result_idx]
                     #print r
-                    (sc, auc, name, meta_model) = r.get(False)
+                    (sc, auc, name, meta_model, meta_name) = r.get(False)
                 except Exception as e:
-                    #print e.message
+                    if len(e.message)>3:
+                        print e.message
                     #print "not ready"
                     continue
+
+                # r = meta_results[result_idx]
+                # (sc, auc, name, meta_model, meta_name) = r.get()
+
 
                 print "READY MASTER:", name, "REMAINING: ", len(meta_results)-1
 
@@ -436,7 +446,10 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
                     best_meta = (meta_name, meta_model)
                     best_pred = pred
 
-                del meta_results[result_idx]
+                todel.append(result_idx)
+            for d in reversed(sorted(todel)):
+                del meta_results[d]
+
 
         if best_meta!=None:
             score_list.append(best_sc)
@@ -462,12 +475,12 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
     print "Done choosing metafeatures"
     return (toret_pred, toret_meta, score_list, auc_list)
 
-def calc_results(predictions, seizure_cv, metafeatures, final_validate, meta_model = None):
+def calc_results(predictions, seizure_cv, metafeatures, final_validate, meta_model = None, meta_name = None):
     (clf_layer, clf_layer_lin, best_feats) = train_master(predictions, seizure_cv, metafeatures)
     if meta_model == None:
         return final_score(final_validate, clf_layer, metafeatures)
     else:
-        return final_score(final_validate, clf_layer, metafeatures)+ (meta_model,)
+        return final_score(final_validate, clf_layer, metafeatures)+ (meta_model,) + (meta_name,)
 
 def calculate_similarities(ft):
     meta = iter(TemporaryMetrics.model_readable)
@@ -577,6 +590,7 @@ def train_master(predictions, seizure_cv, metafeatures):
     pool.close()
     best_clf = None
     while len(possible_master_results)>0:
+        todel = []
         for i in range(len(possible_master_results)):
             try:
                 clf_layer = possible_master_results[i]#.get(False)
@@ -593,7 +607,9 @@ def train_master(predictions, seizure_cv, metafeatures):
                 best_clf = clf_layer
                 best=score
 
-            del possible_master_results[i]
+            todel.append(i)
+        for d in reversed(sorted(todel)):
+            del possible_master_results[d]
 
 
 
@@ -632,10 +648,14 @@ def generate_test_layer(test_data, metafeatures):
         toadd = []
         for c in test_data:
             toadd.append(c.features[feat])
+
+
         try:
             toret.append(mod.predict(toadd))
-        except:
+        except Exception as e:
             toret.append([.5] * (len(toadd)))
+            print feat, len(c.features[feat])
+            print e.message
             print "FAILURE: Couldn't apply model to test data"
 
 
@@ -875,8 +895,8 @@ if __name__ == '__main__':
     #algorithms = ModelList.models_best
 
 
-    algorithms = ModelList.models_new_short
-    #algorithms =  ModelList.models_small
+    #algorithms = ModelList.models_new_short
+    algorithms =  ModelList.models_small
     #algorithms =  ModelList.models_micro
 
     multi_proc_mode = False
