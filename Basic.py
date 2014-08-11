@@ -405,7 +405,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
             #print toret_meta
 
 
-            result = pool.apply_async(calc_results, (toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:],meta_model, meta_name))
+            result = pool.apply_async(calc_results, (toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:],meta_model, meta_name, pred))
 
 
             meta_results.append(result)
@@ -418,7 +418,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
             todel = []
             for result_idx in range(len(meta_results)):
 
-                (sc, auc, name, meta_model, meta_name) = (None, None, None, None, None)
+                (sc, auc, name, meta_model, meta_name, pred) = (None, None, None, None, None, None)
 
 
                 #print len(meta_results), result_idx
@@ -426,7 +426,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
                 try:
                     r = meta_results[result_idx]
                     #print r
-                    (sc, auc, name, meta_model, meta_name) = r.get(False)
+                    (sc, auc, name, meta_model, meta_name, pred) = r.get(False)
                 except Exception as e:
                     if len(e.message)>5:
                         print e.message
@@ -439,7 +439,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
 
                 print "OBTAINED RESULTS:", name, "REMAINING: ", len(meta_results)-1
 
-                if auc>best_auc or auc==best_auc and sc>best_sc:
+                if auc>best_auc or (auc==best_auc and sc>best_sc):
                     print "NEW BEST:", meta_name, sc, auc
                     best_sc = sc
                     best_auc = auc
@@ -447,6 +447,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
                     best_pred = pred
 
                 todel.append(result_idx)
+
             for d in reversed(sorted(todel)):
                 del meta_results[d]
 
@@ -475,12 +476,12 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
     print "Done choosing metafeatures"
     return (toret_pred, toret_meta, score_list, auc_list)
 
-def calc_results(predictions, seizure_cv, metafeatures, final_validate, meta_model = None, meta_name = None):
+def calc_results(predictions, seizure_cv, metafeatures, final_validate, meta_model = None, meta_name = None, pred = None):
     (clf_layer, clf_layer_lin, best_feats) = train_master(predictions, seizure_cv, metafeatures)
     if meta_model == None:
         return final_score(final_validate, clf_layer, metafeatures)
     else:
-        return final_score(final_validate, clf_layer, metafeatures)+ (meta_model,) + (meta_name,)
+        return final_score(final_validate, clf_layer, metafeatures)+ (meta_model,) + (meta_name,) +(pred,)
 
 def calculate_similarities(ft):
     meta = iter(TemporaryMetrics.model_readable)
@@ -604,7 +605,7 @@ def train_master(predictions, seizure_cv, metafeatures):
             #score = clf_layer.score(feature_layer_valid, seizure_cv_valid)
             score = score_model(seizure_cv_valid, feature_layer_valid, clf_layer)
             if score>best:
-                #print "New best master: ", score, a[0].__name__, a[1]
+                print "New best master: ", score, a[0].__name__, a[1]
                 best_clf = clf_layer
                 best=score
 
