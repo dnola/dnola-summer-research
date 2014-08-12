@@ -491,21 +491,22 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
 
                 #print len(meta_results), result_idx
 
-                try:
-                    r = meta_results[result_idx]
-                    #print r
-                    (sc, auc, name, meta_model, meta_name, pred, best_feats) = r.get(False)
-                except Exception as e:
-                    #print "gen first"
-                    print e.message
-                    if len(str(e))>2:
-                        print e
-                    #print "not ready"
-                    continue
-
-                # r = meta_results[result_idx]
+                # try:
+                #     r = meta_results[result_idx]
+                #     #print r
+                #     (sc, auc, name, meta_model, meta_name, pred, best_feats) = r.get(False)
+                # except Exception as e:
+                #     #print "gen first"
+                #     print e.message
+                #     if len(str(e))>2:
+                #         print e
+                #     #print "not ready"
+                #     continue
+                
+                print "getting:", result_idx
+                r = meta_results[result_idx]
                 # #
-                # (sc, auc, name, meta_model, meta_name, pred, best_feats) = r
+                (sc, auc, name, meta_model, meta_name, pred, best_feats) = r.get()
 
                 #print "predout", len(pred)
 
