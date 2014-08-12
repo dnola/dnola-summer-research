@@ -470,8 +470,8 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
             #print toret_meta
 
 
-            result = pool.apply_async(calc_results, (toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:], meta_model, meta_name, pred[:],cv_universal[:], ))
-            #result = calc_results(toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:],meta_model, meta_name, pred[:], cv_universal[:])
+            #result = pool.apply_async(calc_results, (toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:], meta_model, meta_name, pred[:],cv_universal[:], ))
+            result = calc_results(toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:],meta_model, meta_name, pred[:], cv_universal[:])
 
             meta_results.append(result)
 
@@ -506,7 +506,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
                 #print "getting:", result_idx
                 r = meta_results[result_idx]
                 # #
-                (sc, auc, name, meta_model, meta_name, pred, best_feats) = r.get()
+                (sc, auc, name, meta_model, meta_name, pred, best_feats) = r
                 
                 #print "done getting", result_idx
 
@@ -554,12 +554,15 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
 
 def calc_results(predictions, seizure_cv, metafeatures, final_validate, meta_model, meta_name, pred, cv_universal):
 
-    #print "calc results", meta_model, meta_name
+    print "calc results", meta_model, meta_name
     sys.stdout.flush()
     g = generate_test_layer(final_validate, metafeatures)[0]
+    si = [s.seizure for s in final_validate]
     #print "done generating test layer"
+    print "outside master"
     sys.stdout.flush()
-    (clf_layer, clf_layer_lin, best_feats) = train_master(predictions, seizure_cv, g, [s.seizure for s in final_validate], cv_universal)
+    (clf_layer, clf_layer_lin, best_feats) = train_master(predictions, seizure_cv, g, si, cv_universal)
+    print "after master"
     sys.stdout.flush()
     return final_score(final_validate, clf_layer, metafeatures, best_feats) + (meta_model,) + (meta_name,) +(pred,)+ (best_feats,)
 
@@ -641,7 +644,7 @@ def run_master_proc(clf_layer, feature_layer_train, seizure_cv_train):
 def train_master(predictions, seizure_cv, final_validate_layer, final_validate_actual, cv_universal):
 
 
-    #print "training master"
+    print "training master"
     sys.stdout.flush()
     ( feature_layer_train, seizure_cv_train) = organize_master_data(predictions[:], seizure_cv, cv_universal)
 
@@ -670,6 +673,7 @@ def train_master(predictions, seizure_cv, final_validate_layer, final_validate_a
     #print master_algos
     #pool = mp.Pool(8)
     for a in master_algos:
+        print "Master train:", a
         clf = None
         temp = None
 
@@ -686,6 +690,7 @@ def train_master(predictions, seizure_cv, final_validate_layer, final_validate_a
         result = run_master_proc(clf_layer, feature_layer_train, seizure_cv_train)
 
         possible_master_results.append(result)
+        print "done"
 
 
 
