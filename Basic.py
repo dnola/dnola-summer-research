@@ -334,7 +334,7 @@ def train_slave(clips, final_validate):
     keylist.sort(lambda x,y: cmp(len(x), len(y)))
 
     classifiers = []
-    pool = mp.VisiblePool(8)
+    pool = VisiblePool(8)
     cv_universal = None
     for feat, a in itertools.product(keylist, algorithms[:]):
             if 'universal_lower' in feat:
@@ -458,7 +458,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
 
         meta_results = []
 
-        pool = mp.VisiblePool(16)
+        pool = VisiblePool(16)
         for meta in metafeatures:
             #print "RESULTS THIS RUN:"
             (meta_name, meta_model) = meta
