@@ -438,7 +438,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
                 # (sc, auc, name, meta_model, meta_name, pred, best_feats) = r
 
 
-                print "OBTAINED RESULTS:", name, "REMAINING: ", len(meta_results)-1
+                print "OBTAINED RESULTS:", name, "REMAINING: ", len(meta_results)-1, "AUC:", auc
 
                 if auc>best_auc or (auc==best_auc and sc>best_sc):
                     print "NEW BEST:", meta_name, sc, auc
