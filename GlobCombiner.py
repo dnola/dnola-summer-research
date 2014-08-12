@@ -7,7 +7,7 @@ import cPickle
 def begin():
     results = []
     names = []
-    for f in glob.glob('Results/*.pkl'):
+    for f in glob.glob('Results/*RESULTS.pkl'):
         pkl = cPickle.load(open(f, 'rb'))
         for p, v in pkl:
             (name, result) = (p, v)
