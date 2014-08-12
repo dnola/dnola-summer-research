@@ -554,7 +554,10 @@ def calc_results(predictions, seizure_cv, metafeatures, final_validate, meta_mod
 
     print "calc results", meta_model, meta_name
     sys.stdout.flush()
-    (clf_layer, clf_layer_lin, best_feats) = train_master(predictions, seizure_cv, generate_test_layer(final_validate, metafeatures)[0], [s.seizure for s in final_validate], cv_universal)
+    g = generate_test_layer(final_validate, metafeatures)[0]
+    print "done generating test layer"
+    sys.stdout.flush()
+    (clf_layer, clf_layer_lin, best_feats) = train_master(predictions, seizure_cv, g, [s.seizure for s in final_validate], cv_universal)
     sys.stdout.flush()
     return final_score(final_validate, clf_layer, metafeatures, best_feats) + (meta_model,) + (meta_name,) +(pred,)+ (best_feats,)
 
@@ -742,6 +745,7 @@ def generate_test_layer(test_data, metafeatures):
     final = []
     formatted_data = []
 
+    print "generating test layer"
 
     #print test_data[0].features
     #print features
@@ -769,8 +773,12 @@ def generate_test_layer(test_data, metafeatures):
             print feat, len(c.features[feat])
             print e.message
             print "FAILURE: Couldn't apply model to test data"
+            sys.stdout.flush()
 
 
+
+    print "done generating new prediction set"
+    sys.stdout.flush()
     # i = 0
     # for m in models:
     #     if m==0:
@@ -800,6 +808,9 @@ def generate_test_layer(test_data, metafeatures):
         f+=cur.features['universal_lower']
     #for f in final:
     #    print f
+    print "done generating test layer"
+    sys.stdout.flush()
+    
     return (final, metafeatures)
 
 def generate_validation_results(data):
