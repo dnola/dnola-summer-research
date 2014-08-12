@@ -470,8 +470,8 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
             #print toret_meta
 
 
-            result = pool.apply_async(calc_results, (toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:], meta_model, meta_name, pred[:],cv_universal[:], ))
-            # result = calc_results(toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:],meta_model, meta_name, pred[:], cv_universal[:])
+            #result = pool.apply_async(calc_results, (toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:], meta_model, meta_name, pred[:],cv_universal[:], ))
+            result = calc_results(toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:],meta_model, meta_name, pred[:], cv_universal[:])
 
             meta_results.append(result)
 
@@ -506,7 +506,9 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
                 print "getting:", result_idx
                 r = meta_results[result_idx]
                 # #
-                (sc, auc, name, meta_model, meta_name, pred, best_feats) = r.get()
+                (sc, auc, name, meta_model, meta_name, pred, best_feats) = r
+                
+                print "done getting", result_idx
 
                 #print "predout", len(pred)
 
