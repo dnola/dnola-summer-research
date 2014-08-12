@@ -806,12 +806,13 @@ def analyze_dataset(clips, test_data, early=False):
 
 
     final_feature_layer = reduce_feature_space(final_feature_layer, best_feats)
-    final_predict = clf_layer.predict_proba(final_feature_layer)
 
-
-
-
-    final_predict = [1.0-x[0] for x in final_predict]
+    final_predict = None
+    try:
+        final_predict = clf_layer.predict_proba(final_feature_layer)
+        final_predict = [1.0-x[0] for x in final_predict]
+    except:
+        final_predict = clf_layer.predict(final_feature_layer)
 
     (sc, auc, name) = final_score(final_validate, clf_layer, metafeatures, best_feats)
 
