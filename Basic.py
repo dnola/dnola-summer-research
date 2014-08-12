@@ -348,23 +348,23 @@ def train_slave(clips, final_validate):
                     del seizure_cv[t]
 
 
-            #print feat, a, len(cv)
-            # try:
+            print feat, a, len(cv)
+            try:
+
+                result = pool.apply_async(fit_this, (clf,fit,seizure_fit,cv, feat,))
+                #result = fit_this(clf,fit,seizure_fit,cv, feat)
+
+                classifiers.append(result)
+            except mp.TimeoutError:
+                print "TIMED OUT"
+                #exit()
+            except Exception as e:
+                print "OTHER ERROR OCCURRED: ", e.message
+
+
+            # result = fit_this(clf,fit,seizure_fit,cv, feat)
             #
-            #     #result = pool.apply_async(fit_this, (clf,fit,seizure_fit,cv, feat,))
-            #     result = fit_this(clf,fit,seizure_fit,cv, feat)
-            #
-            #     classifiers.append(result)
-            # except mp.TimeoutError:
-            #     print "TIMED OUT"
-            #     #exit()
-            # except Exception as e:
-            #     print "OTHER ERROR OCCURRED: ", e.message
-
-
-            result = fit_this(clf,fit,seizure_fit,cv, feat)
-
-            classifiers.append(result)
+            # classifiers.append(result)
     pool.close()
     print "Waiting for results..."
 
@@ -378,18 +378,19 @@ def train_slave(clips, final_validate):
 
 
 
-            # try:
-            #     (clf, cv, feat, cv_universal) = classifiers[clf_idx].get(False)
-            #     print "READY: ", clf.__class__.__name__, " REMAINING: ", len(classifiers)-1
-            #
-            # except Exception as e:
-            #     #print e
-            #     continue
+            try:
+                (clf, cv, feat) = classifiers[clf_idx].get(False)
+                print "READY: ", clf.__class__.__name__, " REMAINING: ", len(classifiers)-1
+
+            except Exception as e:
+                if len(str(e))>2:
+                    print e
+                continue
             #
             #
             # (clf, cv, feat, cv_universal) = fit_this(clf,fit,seizure_fit,cv, feat,cv_universal)
-            result = iter(classifiers[:])
-            (clf, cv, feat) = result.next()
+
+            #print "READY: ", clf.__class__.__name__, " REMAINING: ", len(classifiers)-1
 
             #print "cvlen" , len(cv)
 
@@ -478,6 +479,9 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
             toret_meta.pop()
         pool.close()
 
+
+        print "Waiting for scores to calculate..."
+
         while len(meta_results) > 0:
             todel = []
             for result_idx in xrange(len(meta_results)):
@@ -493,7 +497,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
                     (sc, auc, name, meta_model, meta_name, pred, best_feats) = r.get(False)
                 except Exception as e:
                     #print "gen first"
-                    if len(str(e))>5:
+                    if len(str(e))>2:
                         print e
                     #print "not ready"
                     continue
@@ -1020,7 +1024,7 @@ if __name__ == '__main__':
 
     early_mode = False
     SUBJECTS = ['Dog_1','Dog_2','Dog_3','Dog_4','Patient_1','Patient_2','Patient_3','Patient_4','Patient_5','Patient_6','Patient_7','Patient_8']
-    SUBJECTS = SUBJECTS[1:2]
+    SUBJECTS = SUBJECTS[8:9]
 
     restart = False
 
