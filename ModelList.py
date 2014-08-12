@@ -204,7 +204,11 @@ models_small = [
             [sklearn.ensemble.RandomForestClassifier ,{'n_estimators': 150, 'n_jobs':-1}                                  ],
             [sklearn.ensemble.GradientBoostingClassifier ,{'n_estimators': 50, 'learning_rate': 0.3}       ],
             [sklearn.neighbors.KNeighborsClassifier ,{'n_neighbors': 5}                                      ],
+            [sklearn.neighbors.KNeighborsClassifier ,{'n_neighbors': 2}                                      ],
             [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .3, 'tol':0.0000001}  ],
+            [linear_model.LogisticRegression, {'penalty' : 'l1', 'C': .3, 'tol':0.0000001}  ],
+                [sklearn.ensemble.ExtraTreesClassifier, {'n_estimators':200, 'n_jobs':-1}],
+                [sklearn.ensemble.AdaBoostClassifier, {'n_estimators':200, 'n_jobs':-1}],
             #[PassthroughModel, {}],
 
                     ]
