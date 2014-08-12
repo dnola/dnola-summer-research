@@ -553,7 +553,7 @@ def organize_master_data(predictions, seizure_cv):
     seizure_cv_train = seizure_cv[:-num_valid]
 
 
-    return (feature_layer_valid, feature_layer_train, seizure_cv_valid, seizure_cv_train)
+    return ( feature_layer_train, seizure_cv_train)
 
 
 def run_master_proc(clf_layer, feature_layer_train, seizure_cv_train):
@@ -562,7 +562,7 @@ def run_master_proc(clf_layer, feature_layer_train, seizure_cv_train):
 
 def train_master(predictions, seizure_cv, final_validate_layer, final_validate_actual):
 
-    (feature_layer_valid, feature_layer_train, seizure_cv_valid, seizure_cv_train) = organize_master_data(predictions, seizure_cv)
+    ( feature_layer_train, seizure_cv_train) = organize_master_data(predictions, seizure_cv)
 
     clf_layer_lin = sklearn.ensemble.RandomForestClassifier(n_estimators=100, random_state=SEED)
     clf_layer_lin.fit(feature_layer_train, seizure_cv_train)
@@ -583,7 +583,7 @@ def train_master(predictions, seizure_cv, final_validate_layer, final_validate_a
 
 
 
-    feature_layer_valid = reduce_feature_space(feature_layer_valid[:], best_feats[:])
+    #feature_layer_valid = reduce_feature_space(feature_layer_valid[:], best_feats[:])
     feature_layer_train = reduce_feature_space(feature_layer_train[:], best_feats[:])
 
     #print master_algos
@@ -953,13 +953,13 @@ if __name__ == '__main__':
         f.write("clip,seizure,early\n")
         f.close()
 
-    FINAL_VERIFY_PERCENT= .50
+    FINAL_VERIFY_PERCENT= .30
     #algorithms = ModelList.models_MLP
     #algorithms = ModelList.models_best
 
 
     #algorithms = ModelList.models_new_short
-    #algorithms =  ModelList.models_small
+    algorithms =  ModelList.models_small
     #algorithms =  ModelList.models_micro
 
     multi_proc_mode = False
