@@ -497,6 +497,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
                     (sc, auc, name, meta_model, meta_name, pred, best_feats) = r.get(False)
                 except Exception as e:
                     #print "gen first"
+                    print e.message
                     if len(str(e))>2:
                         print e
                     #print "not ready"
