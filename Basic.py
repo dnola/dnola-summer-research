@@ -515,7 +515,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
                 print "OBTAINED RESULTS:", meta_model.__class__.__name__, "REMAINING: ", len(meta_results)-1, "AUC:", auc
                 sys.stdout.flush()
 
-                if (auc > best_auc*1.01) or (auc>best_auc and sc > best_sc * .80) or (auc==best_auc and sc>best_sc):
+                if (auc > best_auc*1.05) or (auc>best_auc and sc > best_sc * .85) or (auc==best_auc and sc>best_sc):
                     print "NEW BEST:", meta_name, sc, auc
                     best_sc = sc
                     best_auc = auc
