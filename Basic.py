@@ -570,7 +570,7 @@ def train_master(predictions, seizure_cv, final_validate_layer, final_validate_a
 
     #print "importances", clf_layer_lin.feature_importances_
     best_feats = np.argsort(clf_layer_lin.feature_importances_)[:]
-    print "best feats", best_feats
+    #print "best feats", best_feats
 
 
 
@@ -629,7 +629,7 @@ def train_master(predictions, seizure_cv, final_validate_layer, final_validate_a
             #score = clf_layer.score(feature_layer_valid, seizure_cv_valid)
             score = score_model(final_validate_actual, final_validate_layer, clf_layer)
 
-            print "Current master: ", score, clf_layer.__class__.__name__
+            #print "Current master: ", score, clf_layer.__class__.__name__
             if score>best:
                 #print "New best master: ", score, a[0].__name__, a[1]
                 best_clf = clf_layer

@@ -13,5 +13,5 @@ class PassthroughModel:
                 self.best = i
 
     def predict(self, features):
-        print "Best is:", self.best
+        #print "Best is:", self.best
         return [f[self.best] for f in features]

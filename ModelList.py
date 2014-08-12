@@ -201,6 +201,7 @@ models_small = [
             [sklearn.ensemble.GradientBoostingClassifier ,{'n_estimators': 300, 'learning_rate': 0.3}       ],
             [sklearn.neighbors.KNeighborsClassifier ,{'n_neighbors': 5}                                      ],
             [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .3, 'tol':0.0000001}  ],
+            [PassthroughModel, {}],
 
                     ]
 
