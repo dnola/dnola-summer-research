@@ -428,8 +428,8 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
                     #print r
                     (sc, auc, name, meta_model, meta_name, pred, best_feats) = r.get(False)
                 except Exception as e:
-                    if len(e.message)>5:
-                        print e.message
+                    if len(str(e))>5:
+                        print e
                     #print "not ready"
                     continue
 
@@ -610,8 +610,8 @@ def train_master(predictions, seizure_cv, metafeatures):
             try:
                 clf_layer = possible_master_results[i]#.get(False)
             except Exception as e:
-                if len(e.message)>5:
-                    print e.message
+                if len(str(e))>5:
+                    print e
                 #print "not ready"
                 continue
 
