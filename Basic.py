@@ -555,7 +555,7 @@ def calc_results(predictions, seizure_cv, metafeatures, final_validate, meta_mod
     print "calc results", meta_model, meta_name
     sys.stdout.flush()
     (clf_layer, clf_layer_lin, best_feats) = train_master(predictions, seizure_cv, generate_test_layer(final_validate, metafeatures)[0], [s.seizure for s in final_validate], cv_universal)
-
+    sys.stdout.flush()
     return final_score(final_validate, clf_layer, metafeatures, best_feats) + (meta_model,) + (meta_name,) +(pred,)+ (best_feats,)
 
 
@@ -637,6 +637,7 @@ def train_master(predictions, seizure_cv, final_validate_layer, final_validate_a
 
 
     print "training master"
+    sys.stdout.flush()
     ( feature_layer_train, seizure_cv_train) = organize_master_data(predictions[:], seizure_cv, cv_universal)
 
     clf_layer_lin = sklearn.ensemble.RandomForestClassifier(n_estimators=100, random_state=SEED)
@@ -686,7 +687,7 @@ def train_master(predictions, seizure_cv, final_validate_layer, final_validate_a
 
 
     print "\tWAIT for masters to train..."
-
+    sys.stdout.flush()
     #pool.close()
     best_clf = None
     while len(possible_master_results)>0:
@@ -697,6 +698,7 @@ def train_master(predictions, seizure_cv, final_validate_layer, final_validate_a
             except Exception as e:
                 if len(str(e))>5:
                     print e
+                    sys.stdout.flush()
                 #print "not ready"
                 continue
 
@@ -722,6 +724,7 @@ def train_master(predictions, seizure_cv, final_validate_layer, final_validate_a
     #cPickle.dump((TemporaryMetrics.model_readable, clf_layer_lin.feature_importances_), open('scores.spkl', 'wb'))
 
     print  "\tDONE - BEST MASTER:", best_clf.__class__, "AUC Score:", best, best_clf.get_params()
+    sys.stdout.flush()
     print
     retry = False
     todel = []
