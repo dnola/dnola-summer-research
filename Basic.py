@@ -334,7 +334,7 @@ def train_slave(clips, final_validate):
     keylist.sort(lambda x,y: cmp(len(x), len(y)))
 
     classifiers = []
-    pool = mp.Pool(8)
+    pool = mp.VisiblePool(8)
     cv_universal = None
     for feat, a in itertools.product(keylist, algorithms[:]):
             if 'universal_lower' in feat:
@@ -458,7 +458,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
 
         meta_results = []
 
-        pool = mp.Pool(16)
+        pool = mp.VisiblePool(16)
         for meta in metafeatures:
             #print "RESULTS THIS RUN:"
             (meta_name, meta_model) = meta
@@ -470,8 +470,8 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
             #print toret_meta
 
 
-            #result = pool.apply_async(calc_results, (toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:], meta_model, meta_name, pred[:],cv_universal[:], ))
-            result = calc_results(toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:],meta_model, meta_name, pred[:], cv_universal[:])
+            result = pool.apply_async(calc_results, (toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:], meta_model, meta_name, pred[:],cv_universal[:], ))
+            #result = calc_results(toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:],meta_model, meta_name, pred[:], cv_universal[:])
 
             meta_results.append(result)
 
@@ -506,7 +506,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
                 print "getting:", result_idx
                 r = meta_results[result_idx]
                 # #
-                (sc, auc, name, meta_model, meta_name, pred, best_feats) = r
+                (sc, auc, name, meta_model, meta_name, pred, best_feats) = r.get()
                 
                 print "done getting", result_idx
 
