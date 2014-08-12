@@ -3,7 +3,7 @@ import sklearn
 from sklearn import *
 from sklearn import ensemble
 import MultilayerPerceptron
-
+from PassthroughModel import PassthroughModel
 models_new_short = [ #PUT IT IN ORDER OF IMPORTANCE
                 #[MultilayerPerceptron.MultilayerPerceptronManager ,{}                                       ],
                 [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .01, 'n_estimators' : 100}],
@@ -208,6 +208,7 @@ models_micro = [
             [sklearn.ensemble.RandomForestClassifier ,{'n_estimators': 300}                                  ],
             [sklearn.neighbors.KNeighborsClassifier ,{'n_neighbors': 5}                                      ],
             [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .3, 'tol':0.0000001}  ],
+            [PassthroughModel, {}]
 
                     ]
 
