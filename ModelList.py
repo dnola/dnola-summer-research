@@ -5,7 +5,11 @@ from sklearn import ensemble
 import MultilayerPerceptron
 from PassthroughModel import PassthroughModel
 models_new_short = [ #PUT IT IN ORDER OF IMPORTANCE
-                #[MultilayerPerceptron.MultilayerPerceptronManager ,{}                                       ],
+                #[MultilayerPerceptron.MultilayerPerceptronManager ,{}   #                                     ],
+
+                [PassthroughModel, {}],
+
+
                 [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .01, 'n_estimators' : 100}],
                 [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .001, 'n_estimators' : 100}],
                 [sklearn.ensemble.GradientBoostingClassifier, {'learning_rate' : .1, 'n_estimators' : 30}],

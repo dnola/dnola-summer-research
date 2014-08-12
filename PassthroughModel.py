@@ -22,7 +22,6 @@ class PassthroughModel:
     def score(self, features, targets):
         p = self.predict(features)
         p = [round(x, 0) for x in p]
-        print p
         score = 0
         for i in range(len(p)):
             if p[i] == targets[i]:

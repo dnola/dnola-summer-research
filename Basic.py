@@ -953,14 +953,14 @@ if __name__ == '__main__':
         f.write("clip,seizure,early\n")
         f.close()
 
-    FINAL_VERIFY_PERCENT= .30
+    FINAL_VERIFY_PERCENT= .50
     #algorithms = ModelList.models_MLP
     #algorithms = ModelList.models_best
 
 
     #algorithms = ModelList.models_new_short
     #algorithms =  ModelList.models_small
-    algorithms =  ModelList.models_micro
+    #algorithms =  ModelList.models_micro
 
     multi_proc_mode = False
 
