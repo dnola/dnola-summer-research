@@ -5,7 +5,7 @@ __author__ = 'davidnola'
 ### Running Parameters
 
 import ModelList
-FINAL_VERIFY_PERCENT= .30
+FINAL_VERIFY_PERCENT= .25
 
 import math
 ### Start
@@ -355,7 +355,6 @@ def train_slave(clips, final_validate):
                 #print e.message
                 predict = clf.predict(cv)
 
-            (t_meta, t_pred) = (metafeatures[:], predictions[:])
             metafeatures.append((feat, clf))
             predictions.append(predict)
 
@@ -390,7 +389,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
         print "Model Number: ", x
         best_meta=None
         best_pred=None
-        pred_iter = iter(predictions)
+        pred_iter = iter(predictions[:])
 
 
         meta_results = []
@@ -400,13 +399,14 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
             #print "RESULTS THIS RUN:"
             (meta_name, meta_model) = meta
             pred = pred_iter.next()
-            toret_pred.append(pred)
+
+            toret_pred.append(pred[:])
             toret_meta.append((meta_name, meta_model))
             #print toret_meta
 
 
-            result = pool.apply_async(calc_results, (toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:],meta_model, meta_name, pred))
-
+            result = pool.apply_async(calc_results, (toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:], meta_model, meta_name, pred[:],))
+            #result = calc_results(toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:],meta_model, meta_name, pred[:])
 
             meta_results.append(result)
 
@@ -418,7 +418,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
             todel = []
             for result_idx in range(len(meta_results)):
 
-                (sc, auc, name, meta_model, meta_name, pred) = (None, None, None, None, None, None)
+                (sc, auc, name, meta_model, meta_name, pred, best_feats) = (None, None, None, None, None, None, None)
 
 
                 #print len(meta_results), result_idx
@@ -426,7 +426,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
                 try:
                     r = meta_results[result_idx]
                     #print r
-                    (sc, auc, name, meta_model, meta_name, pred) = r.get(False)
+                    (sc, auc, name, meta_model, meta_name, pred, best_feats) = r.get(False)
                 except Exception as e:
                     if len(e.message)>5:
                         print e.message
@@ -434,7 +434,8 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
                     continue
 
                 # r = meta_results[result_idx]
-                # (sc, auc, name, meta_model, meta_name) = r.get()
+                # #
+                # (sc, auc, name, meta_model, meta_name, pred, best_feats) = r
 
 
                 print "OBTAINED RESULTS:", name, "REMAINING: ", len(meta_results)-1
@@ -476,12 +477,12 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
     print "Done choosing metafeatures"
     return (toret_pred, toret_meta, score_list, auc_list)
 
-def calc_results(predictions, seizure_cv, metafeatures, final_validate, meta_model = None, meta_name = None, pred = None):
+def calc_results(predictions, seizure_cv, metafeatures, final_validate, meta_model, meta_name, pred):
+
     (clf_layer, clf_layer_lin, best_feats) = train_master(predictions, seizure_cv, metafeatures)
-    if meta_model == None:
-        return final_score(final_validate, clf_layer, metafeatures)
-    else:
-        return final_score(final_validate, clf_layer, metafeatures)+ (meta_model,) + (meta_name,) +(pred,)
+
+    return final_score(final_validate, clf_layer, metafeatures, best_feats) + (meta_model,) + (meta_name,) +(pred,)+ (best_feats,)
+
 
 def calculate_similarities(ft):
     meta = iter(TemporaryMetrics.model_readable)
@@ -496,23 +497,31 @@ def calculate_similarities(ft):
             print "\t", ot_meta.next(), diff
 
 def reduce_feature_space(f, best):
-    return f
+
     for fi in range(len(f)):
         v = f[fi]
         v = [ x if isinstance(x, (float,int,long)) else 0 for x in v]
         f[fi] = [np.max(v), np.min(v), np.mean(v), np.var(v), np.std(v), sp.stats.skew(v), sp.stats.kurtosis(v)]
-        for b in best:
-            f[fi].append(v[b])
-        print f[fi]
+
+        try:
+            for b in best:
+                f[fi].append(v[b])
+        except:
+            pass
+
+
+        #print f[fi]
     return f
 
 def organize_master_data(predictions, seizure_cv):
     feature_layer = []
 
+
     for i in range(len(predictions[0])): #for every .mat
         toadd = []
         for category in range(len(predictions)): #for every metafeature prediction set added to predictions
             v = predictions[category][i]
+            #print "v", v
             if not math.isnan(v):
                 toadd.append(v) # add the corresponding prediction for that mat,  as guessed by that metafeature model
             else:
@@ -550,11 +559,11 @@ def train_master(predictions, seizure_cv, metafeatures):
 
 
     #print "importances", clf_layer_lin.feature_importances_
-    best_feats = np.argsort(clf_layer_lin.feature_importances_)[-10:]
-    #print best_feats
+    best_feats = np.argsort(clf_layer_lin.feature_importances_)[:]
+    print "best feats", best_feats
 
 
-    feature_layer = reduce_feature_space(feature_layer_train, best_feats)
+
 
     clf_layer = None
     best = 0
@@ -564,6 +573,8 @@ def train_master(predictions, seizure_cv, metafeatures):
 
 
 
+    feature_layer_valid = reduce_feature_space(feature_layer_valid[:], best_feats[:])
+    feature_layer_train = reduce_feature_space(feature_layer_train[:], best_feats[:])
 
     #print master_algos
     #pool = mp.Pool(8)
@@ -586,6 +597,9 @@ def train_master(predictions, seizure_cv, metafeatures):
         possible_master_results.append(result)
 
 
+
+
+
     print "\tWAIT for masters to train..."
 
     #pool.close()
@@ -605,7 +619,7 @@ def train_master(predictions, seizure_cv, metafeatures):
             #score = clf_layer.score(feature_layer_valid, seizure_cv_valid)
             score = score_model(seizure_cv_valid, feature_layer_valid, clf_layer)
             if score>best:
-                print "New best master: ", score, a[0].__name__, a[1]
+                #print "New best master: ", score, a[0].__name__, a[1]
                 best_clf = clf_layer
                 best=score
 
@@ -697,13 +711,14 @@ def generate_validation_results(data):
             toret.append(0)
     return toret
 
-def final_score(final_validate, clf_layer, metafeatures, best_feats = None):
+def final_score(final_validate, clf_layer, metafeatures, best_feats):
     (final_feature_layer_check, metafeatures) = generate_test_layer(final_validate, metafeatures)
     final_feature_layer_check = reduce_feature_space(final_feature_layer_check, best_feats)
 
     final_validation_results = generate_validation_results(final_validate)
 
     #print "OLD SCORE: ", clf_layer_lin.score(final_feature_layer_check, final_validation_results)
+
     sc = clf_layer.score(final_feature_layer_check, final_validation_results)
     #print "SCORE: ", sc
 
@@ -728,6 +743,35 @@ def analyze_dataset(clips, test_data, early=False):
 
     start = time.time()
 
+    final_clips = []
+    sorter = []
+    for c in clips:
+        if c.latency<0:
+            continue
+        toadd = int(c.name[c.name.rfind('_')+1:-4])
+        sorter.append((c, toadd))
+
+    curlat = -1
+    unique_clips = []
+    for s in sorted(sorter, key=operator.itemgetter(1)):
+        s = s[0]
+        print s.name
+        if s.latency > curlat:
+            curlat = s.latency
+            unique_clips.append(s)
+            print curlat, s.name
+        else:
+            break
+
+    todel = []
+    for i in range(len(clips)):
+        if clips[i] in unique_clips:
+            print i, "deleted"
+            todel.append(i)
+
+    for i in reversed(todel):
+        del clips[i]
+
     if early:
         for c in clips:
             c.seizure = c.seizure_early
@@ -749,7 +793,7 @@ def analyze_dataset(clips, test_data, early=False):
                 seiz_count+=1
 
 
-    final_validate = clips[-FINAL_VERIFY_SIZE:]
+    final_validate = clips[-FINAL_VERIFY_SIZE:] + unique_clips
     clips = clips[:-FINAL_VERIFY_SIZE]
 
 
@@ -796,6 +840,7 @@ def procc(result_q):
         redo.append((train, test, s))
         #pickle_dataset(s)
         print "Done"
+
 
         print len(train), len(test), len(names)
 
