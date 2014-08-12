@@ -457,7 +457,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
 
         meta_results = []
 
-        pool = mp.Pool(8)
+        pool = mp.Pool(16)
         for meta in metafeatures:
             #print "RESULTS THIS RUN:"
             (meta_name, meta_model) = meta
