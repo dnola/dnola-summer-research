@@ -579,7 +579,7 @@ def train_master(predictions, seizure_cv, final_validate_layer, final_validate_a
     best = 0
 
     possible_master_results = []
-    master_algos = ModelList.models_micro[:]
+    master_algos = algorithms[:]
 
 
 
