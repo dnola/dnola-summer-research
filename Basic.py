@@ -5,7 +5,7 @@ __author__ = 'davidnola'
 ### Running Parameters
 
 import ModelList
-FINAL_VERIFY_PERCENT= .30
+FINAL_VERIFY_PERCENT= .50
 
 import math
 ### Start
