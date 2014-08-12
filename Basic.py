@@ -551,6 +551,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
 def calc_results(predictions, seizure_cv, metafeatures, final_validate, meta_model, meta_name, pred, cv_universal):
 
     print "calc results", meta_model, meta_name
+    sys.stdout.flush()
     (clf_layer, clf_layer_lin, best_feats) = train_master(predictions, seizure_cv, generate_test_layer(final_validate, metafeatures)[0], [s.seizure for s in final_validate], cv_universal)
 
     return final_score(final_validate, clf_layer, metafeatures, best_feats) + (meta_model,) + (meta_name,) +(pred,)+ (best_feats,)
