@@ -70,7 +70,7 @@ class TemporaryMetrics:
         i = itertools.cycle(TemporaryMetrics.model_titles)
         im = itertools.cycle(TemporaryMetrics.model_short)
 
-        num = iter(range(10000))
+        num = iter(xrange(10000))
         matrix = np.sum(TemporaryMetrics.feature_scores_raw, axis=0)
         matrix = matrix[0]/max(matrix[0])
         data_out = dict()
@@ -275,18 +275,42 @@ def initialize_model_data(feat, a, clips):
     clf = initialize_model_state(a)
     fit = []
     cv = []
+    cv_universal = []
+
+    todel_fit = []
+    counter = itertools.count()
     for c in clips[::2]:
-        fit.append(c.features[feat])
+        cur = counter.next()
+        try:
+            #print c.features.keys()
+            #del c.features['universal_lower']
+            fit.append(c.features[feat])
+            #print "done"
+        except:
+            todel_fit.append(cur)
 
+    todel_cv = []
+    counter = itertools.count()
     for c in clips[1::2]:
-        cv.append(c.features[feat])
+        cur = counter.next()
+        try:
 
-    return (clf, fit, cv)
+            #del c.features['universal_lower']
+            cv.append(c.features[feat])
+            cv_universal.append(c.features['universal_lower'])
+            #print "done"
+        except:
+            todel_cv.append(cur)
+
+
+    #print len(fit), len(cv), len(cv_universal)
+    return (clf, fit, cv, cv_universal, todel_fit, todel_cv)
 
 
 def fit_this(clf, fit, seizure_fit, cv, feat):
-    #print "Starting fit..."
+    print "Starting fit..."
 
+    #print len(fit), len(seizure_fit)
     clf.fit(fit, seizure_fit)
     #print "done!"
     return (clf, cv, feat)
@@ -311,38 +335,63 @@ def train_slave(clips, final_validate):
 
     classifiers = []
     pool = mp.Pool(8)
+    cv_universal = None
     for feat, a in itertools.product(keylist, algorithms[:]):
+            if 'universal_lower' in feat:
+                continue
+            (clf, fit, cv, cv_universal, todel_fit, todel_cv) = initialize_model_data(feat, a, clips[:])
 
-            (clf, fit, cv) = initialize_model_data(feat, a, clips)
+            if len(seizure_fit) > len(fit) or len(seizure_cv) > len(cv) :
+                for t in reversed(todel_fit):
+                    del seizure_fit[t]
+                for t in reversed(todel_cv):
+                    del seizure_cv[t]
 
-            try:
 
-                result = pool.apply_async(fit_this, (clf,fit,seizure_fit,cv, feat,))
+            #print feat, a, len(cv)
+            # try:
+            #
+            #     #result = pool.apply_async(fit_this, (clf,fit,seizure_fit,cv, feat,))
+            #     result = fit_this(clf,fit,seizure_fit,cv, feat)
+            #
+            #     classifiers.append(result)
+            # except mp.TimeoutError:
+            #     print "TIMED OUT"
+            #     #exit()
+            # except Exception as e:
+            #     print "OTHER ERROR OCCURRED: ", e.message
 
 
-                classifiers.append(result)
-            except mp.TimeoutError:
-                print "TIMED OUT"
-                #exit()
-            except Exception as e:
-                print "OTHER ERROR OCCURRED: ", e.message
+            result = fit_this(clf,fit,seizure_fit,cv, feat)
 
+            classifiers.append(result)
     pool.close()
     print "Waiting for results..."
+
     while len(classifiers) > 0:
 
         todel = []
-        for clf_idx in range(len(classifiers)):
+        for clf_idx in xrange(len(classifiers)):
 
 
             (clf, cv, feat) = (None,None, None)
 
-            try:
-                (clf, cv, feat) = classifiers[clf_idx].get(False)
-                print "READY: ", clf.__class__.__name__, " REMAINING: ", len(classifiers)-1
 
-            except:
-                continue
+
+            # try:
+            #     (clf, cv, feat, cv_universal) = classifiers[clf_idx].get(False)
+            #     print "READY: ", clf.__class__.__name__, " REMAINING: ", len(classifiers)-1
+            #
+            # except Exception as e:
+            #     #print e
+            #     continue
+            #
+            #
+            # (clf, cv, feat, cv_universal) = fit_this(clf,fit,seizure_fit,cv, feat,cv_universal)
+            result = iter(classifiers[:])
+            (clf, cv, feat) = result.next()
+
+            #print "cvlen" , len(cv)
 
             models.append(clf)
 
@@ -355,6 +404,8 @@ def train_slave(clips, final_validate):
                 #print e.message
                 predict = clf.predict(cv)
 
+
+            #print "lenpred", len(predict), len(cv)
 
             final_feats = []
             final_seiz = []
@@ -372,21 +423,23 @@ def train_slave(clips, final_validate):
         for d in reversed(sorted(todel)):
             del classifiers[d]
 
-    (toret_pred, toret_meta, score_list, auc_list) = generate_best_first_layer(predictions,metafeatures, seizure_cv, final_validate)
+
+    (toret_pred, toret_meta, score_list, auc_list) = generate_best_first_layer(predictions,metafeatures, seizure_cv, final_validate, cv_universal)
 
 
-    print toret_meta
+    #print toret_meta
     print "DONE training slave, results: "
+    #print len(cv_universal)
     count = itertools.count()
     scs = iter(score_list)
     aucs = iter(auc_list)
     for m in toret_meta:
         nn = str(m[0])+": "+str(m[1].__class__.__name__)
         print count.next(), ":", nn, "Score:", scs.next(), "AUC:", aucs.next()
-    return (toret_pred, seizure_cv, models ,toret_meta)
+    return (toret_pred, seizure_cv, models ,toret_meta, cv_universal)
     #return (models, seizure_cv)
 
-def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_validate):
+def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_validate, cv_universal):
     print "Choosing best metafeatures for first layer"
     toret_meta = []
     toret_pred = []
@@ -394,12 +447,13 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
     auc_list=[]
     best_sc = 0
     best_auc = 0
-    for x in range(len(predictions)):
+    for x in xrange(len(predictions)):
         print "Model Number: ", x
         best_meta=None
         best_pred=None
         pred_iter = iter(predictions[:])
 
+        #print "bfuni", len(cv_universal)
 
         meta_results = []
 
@@ -407,7 +461,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
         for meta in metafeatures:
             #print "RESULTS THIS RUN:"
             (meta_name, meta_model) = meta
-            print "meta", meta_name
+            print "meta", meta_name, meta_model.__class__.__name__
             pred = pred_iter.next()
 
             toret_pred.append(pred[:])
@@ -415,8 +469,8 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
             #print toret_meta
 
 
-            result = pool.apply_async(calc_results, (toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:], meta_model, meta_name, pred[:],))
-            #result = calc_results(toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:],meta_model, meta_name, pred[:])
+            result = pool.apply_async(calc_results, (toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:], meta_model, meta_name, pred[:],cv_universal[:], ))
+            # result = calc_results(toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:],meta_model, meta_name, pred[:], cv_universal[:])
 
             meta_results.append(result)
 
@@ -426,7 +480,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
 
         while len(meta_results) > 0:
             todel = []
-            for result_idx in range(len(meta_results)):
+            for result_idx in xrange(len(meta_results)):
 
                 (sc, auc, name, meta_model, meta_name, pred, best_feats) = (None, None, None, None, None, None, None)
 
@@ -438,6 +492,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
                     #print r
                     (sc, auc, name, meta_model, meta_name, pred, best_feats) = r.get(False)
                 except Exception as e:
+                    #print "gen first"
                     if len(str(e))>5:
                         print e
                     #print "not ready"
@@ -447,6 +502,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
                 # #
                 # (sc, auc, name, meta_model, meta_name, pred, best_feats) = r
 
+                #print "predout", len(pred)
 
                 print "OBTAINED RESULTS:", meta_model.__class__.__name__, "REMAINING: ", len(meta_results)-1, "AUC:", auc
 
@@ -467,7 +523,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
             score_list.append(best_sc)
             auc_list.append(best_auc)
             nn = str(best_meta[0])+": "+str(best_meta[1].__class__.__name__)
-            for i in range(len(predictions)):
+            for i in xrange(len(predictions)):
 
                 cur = str(metafeatures[i][0])+": "+str(metafeatures[i][1].__class__.__name__)
                 #print nn, cur
@@ -487,9 +543,9 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
     print "Done choosing metafeatures"
     return (toret_pred, toret_meta, score_list, auc_list)
 
-def calc_results(predictions, seizure_cv, metafeatures, final_validate, meta_model, meta_name, pred):
+def calc_results(predictions, seizure_cv, metafeatures, final_validate, meta_model, meta_name, pred, cv_universal):
 
-    (clf_layer, clf_layer_lin, best_feats) = train_master(predictions, seizure_cv, generate_test_layer(final_validate, metafeatures)[0], [s.seizure for s in final_validate])
+    (clf_layer, clf_layer_lin, best_feats) = train_master(predictions, seizure_cv, generate_test_layer(final_validate, metafeatures)[0], [s.seizure for s in final_validate], cv_universal)
 
     return final_score(final_validate, clf_layer, metafeatures, best_feats) + (meta_model,) + (meta_name,) +(pred,)+ (best_feats,)
 
@@ -508,7 +564,7 @@ def calculate_similarities(ft):
 
 def reduce_feature_space(f, best):
     return f
-    for fi in range(len(f)):
+    for fi in xrange(len(f)):
         v = f[fi]
         v = [ x if isinstance(x, (float,int,long)) else 0 for x in v]
         f[fi] = [np.max(v), np.min(v), np.mean(v), np.var(v), np.std(v), sp.stats.skew(v), sp.stats.kurtosis(v)]
@@ -523,25 +579,33 @@ def reduce_feature_space(f, best):
         #print f[fi]
     return f
 
-def organize_master_data(predictions, seizure_cv):
+def organize_master_data(predictions, seizure_cv, cv_universal):
     feature_layer = []
 
+    #print "org mast", len(predictions[0]), len(cv_universal)
 
-    for i in range(len(predictions[0])): #for every .mat
+    for i in xrange(len(predictions[0])): #for every .mat
         toadd = []
-        for category in range(len(predictions)): #for every metafeature prediction set added to predictions
+        for category in xrange(len(predictions)): #for every metafeature prediction set added to predictions
             v = predictions[category][i]
             #print "v", v
             if not math.isnan(v):
                 toadd.append(v) # add the corresponding prediction for that mat,  as guessed by that metafeature model
             else:
                 toadd.append(0)
+
+
+        #print toadd
         feature_layer.append(toadd)
 
+    #print "here", len(feature_layer), len(cv_universal)
+
+    for x in xrange(len(feature_layer)):
+        feature_layer[x]+=cv_universal[x]
     #print seizure_cv
     #print feature_layer
 
-    for fi in range(len(feature_layer)):
+    for fi in xrange(len(feature_layer)):
         v = feature_layer[fi]
         v = [ x if isinstance(x, (float,int,long)) else 0 for x in v]
         feature_layer[fi] = v
@@ -560,9 +624,11 @@ def run_master_proc(clf_layer, feature_layer_train, seizure_cv_train):
     clf_layer.fit(feature_layer_train, seizure_cv_train)
     return clf_layer
 
-def train_master(predictions, seizure_cv, final_validate_layer, final_validate_actual):
+def train_master(predictions, seizure_cv, final_validate_layer, final_validate_actual, cv_universal):
 
-    ( feature_layer_train, seizure_cv_train) = organize_master_data(predictions, seizure_cv)
+
+    print "training master"
+    ( feature_layer_train, seizure_cv_train) = organize_master_data(predictions[:], seizure_cv, cv_universal)
 
     clf_layer_lin = sklearn.ensemble.RandomForestClassifier(n_estimators=100, random_state=SEED)
     clf_layer_lin.fit(feature_layer_train, seizure_cv_train)
@@ -616,7 +682,7 @@ def train_master(predictions, seizure_cv, final_validate_layer, final_validate_a
     best_clf = None
     while len(possible_master_results)>0:
         todel = []
-        for i in range(len(possible_master_results)):
+        for i in xrange(len(possible_master_results)):
             try:
                 clf_layer = possible_master_results[i]#.get(False)
             except Exception as e:
@@ -627,6 +693,9 @@ def train_master(predictions, seizure_cv, final_validate_layer, final_validate_a
 
             #print "TOP READY: ", clf_layer.__class__.__name__, "REMAINING: ", len(possible_master_results)-1
             #score = clf_layer.score(feature_layer_valid, seizure_cv_valid)
+
+
+
             score = score_model(final_validate_actual, final_validate_layer, clf_layer)
 
             #print "Current master: ", score, clf_layer.__class__.__name__
@@ -648,7 +717,7 @@ def train_master(predictions, seizure_cv, final_validate_layer, final_validate_a
     retry = False
     todel = []
     #print clf_layer_lin.feature_importances_
-    for i in range(len(clf_layer_lin.feature_importances_)):
+    for i in xrange(len(clf_layer_lin.feature_importances_)):
         if clf_layer_lin.feature_importances_[i] < 0:
             todel.append(i)
             retry = True
@@ -702,17 +771,21 @@ def generate_test_layer(test_data, metafeatures):
     #     i+=1
 
 
-    for t in range(len(test_data)):
+    for t in xrange(len(test_data)):
         toadd = []
 
-        for l in range(len(toret)):
+        for l in xrange(len(toret)):
             toadd.append(toret[l][t])
 
         final.append(toadd[:])
         #print toadd
         #print "next"
 
-
+    uni_iter = iter(test_data)
+    for f in final:
+        cur = uni_iter.next()
+        #print cur.features.keys()
+        f+=cur.features['universal_lower']
     #for f in final:
     #    print f
     return (final, metafeatures)
@@ -779,7 +852,7 @@ def analyze_dataset(clips, test_data, early=False):
             break
 
     todel = []
-    for i in range(len(clips)):
+    for i in xrange(len(clips)):
         if clips[i] in unique_clips:
             #print i, "deleted"
             todel.append(i)
@@ -812,9 +885,16 @@ def analyze_dataset(clips, test_data, early=False):
     clips = clips[:-FINAL_VERIFY_SIZE]
 
 
-    (predictions, seizure_cv, models, metafeatures) = train_slave(clips, final_validate)
+
+        #del c.features['universal_lower']
+
+    (predictions, seizure_cv, models, metafeatures, cv_universal) = train_slave(clips, final_validate)
     print "before metafeatures: ", len(metafeatures)
-    (clf_layer, clf_layer_lin, best_feats) = train_master(predictions, seizure_cv, generate_test_layer(final_validate, metafeatures)[0], [s.seizure for s in final_validate])
+
+
+
+
+    (clf_layer, clf_layer_lin, best_feats) = train_master(predictions, seizure_cv, generate_test_layer(final_validate, metafeatures)[0], [s.seizure for s in final_validate], cv_universal)
     print "after metafeatures: ", len(metafeatures)
 
     (final_feature_layer, metafeatures) = generate_test_layer(test_data, metafeatures)
@@ -914,7 +994,7 @@ def run_multi():
     # p2 = Process(target=twit, args=(input,))
     # p2.start()
     p = []
-    for i in range(16):
+    for i in xrange(16):
         p.append(Process(target=procc, args=(result_q,)))
 
     for proc in p:
@@ -926,7 +1006,7 @@ def run_multi():
     print "DONE"
 
     result_list = []
-    for i in range(16):
+    for i in xrange(16):
         result_list.append(result_q.get())
     print result_list
     print np.mean(result_list)
@@ -940,7 +1020,7 @@ if __name__ == '__main__':
 
     early_mode = False
     SUBJECTS = ['Dog_1','Dog_2','Dog_3','Dog_4','Patient_1','Patient_2','Patient_3','Patient_4','Patient_5','Patient_6','Patient_7','Patient_8']
-    SUBJECTS = SUBJECTS[2:3]
+    SUBJECTS = SUBJECTS[1:2]
 
     restart = False
 
