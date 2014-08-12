@@ -462,7 +462,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
         for meta in metafeatures:
             #print "RESULTS THIS RUN:"
             (meta_name, meta_model) = meta
-            print "meta", meta_name, meta_model.__class__.__name__
+            #print "meta", meta_name, meta_model.__class__.__name__
             pred = pred_iter.next()
 
             toret_pred.append(pred[:])
@@ -503,12 +503,12 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
                 #     #print "not ready"
                 #     continue
                 
-                print "getting:", result_idx
+                #print "getting:", result_idx
                 r = meta_results[result_idx]
                 # #
                 (sc, auc, name, meta_model, meta_name, pred, best_feats) = r.get()
                 
-                print "done getting", result_idx
+                #print "done getting", result_idx
 
                 #print "predout", len(pred)
 
@@ -554,10 +554,10 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
 
 def calc_results(predictions, seizure_cv, metafeatures, final_validate, meta_model, meta_name, pred, cv_universal):
 
-    print "calc results", meta_model, meta_name
+    #print "calc results", meta_model, meta_name
     sys.stdout.flush()
     g = generate_test_layer(final_validate, metafeatures)[0]
-    print "done generating test layer"
+    #print "done generating test layer"
     sys.stdout.flush()
     (clf_layer, clf_layer_lin, best_feats) = train_master(predictions, seizure_cv, g, [s.seizure for s in final_validate], cv_universal)
     sys.stdout.flush()
@@ -641,7 +641,7 @@ def run_master_proc(clf_layer, feature_layer_train, seizure_cv_train):
 def train_master(predictions, seizure_cv, final_validate_layer, final_validate_actual, cv_universal):
 
 
-    print "training master"
+    #print "training master"
     sys.stdout.flush()
     ( feature_layer_train, seizure_cv_train) = organize_master_data(predictions[:], seizure_cv, cv_universal)
 
@@ -747,7 +747,7 @@ def generate_test_layer(test_data, metafeatures):
     final = []
     formatted_data = []
 
-    print "generating test layer"
+    #print "generating test layer"
 
     #print test_data[0].features
     #print features
@@ -779,7 +779,7 @@ def generate_test_layer(test_data, metafeatures):
 
 
 
-    print "done generating new prediction set"
+    #print "done generating new prediction set"
     sys.stdout.flush()
     # i = 0
     # for m in models:
@@ -810,7 +810,7 @@ def generate_test_layer(test_data, metafeatures):
         f+=cur.features['universal_lower']
     #for f in final:
     #    print f
-    print "done generating test layer"
+    #print "done generating test layer"
     sys.stdout.flush()
     
     return (final, metafeatures)
