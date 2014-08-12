@@ -5,7 +5,7 @@ __author__ = 'davidnola'
 ### Running Parameters
 
 import ModelList
-FINAL_VERIFY_PERCENT= .50
+FINAL_VERIFY_PERCENT= .30
 
 import math
 ### Start
@@ -416,7 +416,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
 
 
             result = pool.apply_async(calc_results, (toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:], meta_model, meta_name, pred[:],))
-            result = calc_results(toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:],meta_model, meta_name, pred[:])
+            #result = calc_results(toret_pred[:],seizure_cv[:],toret_meta[:],final_validate[:],meta_model, meta_name, pred[:])
 
             meta_results.append(result)
 
@@ -433,24 +433,24 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
 
                 #print len(meta_results), result_idx
 
-                # try:
-                #     r = meta_results[result_idx]
-                #     #print r
-                #     (sc, auc, name, meta_model, meta_name, pred, best_feats) = r.get(False)
-                # except Exception as e:
-                #     if len(str(e))>5:
-                #         print e
-                #     #print "not ready"
-                #     continue
+                try:
+                    r = meta_results[result_idx]
+                    #print r
+                    (sc, auc, name, meta_model, meta_name, pred, best_feats) = r.get(False)
+                except Exception as e:
+                    if len(str(e))>5:
+                        print e
+                    #print "not ready"
+                    continue
 
-                r = meta_results[result_idx]
-                #
-                (sc, auc, name, meta_model, meta_name, pred, best_feats) = r
+                # r = meta_results[result_idx]
+                # #
+                # (sc, auc, name, meta_model, meta_name, pred, best_feats) = r
 
 
                 print "OBTAINED RESULTS:", meta_model.__class__.__name__, "REMAINING: ", len(meta_results)-1, "AUC:", auc
 
-                if auc>=best_auc or (auc==best_auc and sc>best_sc):
+                if (auc > best_auc*1.01) or (auc>best_auc and sc > best_sc * .90) or (auc==best_auc and sc>best_sc):
                     print "NEW BEST:", meta_name, sc, auc
                     best_sc = sc
                     best_auc = auc
