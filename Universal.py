@@ -433,6 +433,11 @@ def generate_layer_2_dict(subject_list):
 
 
 
+    for t in [n.name for n in train]:
+        if not t in first:
+            print "NO:", t
+
+
     first.update(layer_2_features_tgt)
 
     return first # PROBLEM: We need a dict of EVERYTHING on this layer - no wait - should skip ones we dont have
@@ -443,7 +448,7 @@ if __name__ == '__main__':
     #write_output(data)
 
     #print generate_layer_1_dict(SUBJECTS[0:1])
-    #print generate_layer_2_dict(SUBJECTS[0:1])
+    print generate_layer_2_dict(SUBJECTS[0:1])
 
     print "DONE"
 
