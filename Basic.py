@@ -5,7 +5,7 @@ __author__ = 'davidnola'
 ### Running Parameters
 
 import ModelList
-FINAL_VERIFY_PERCENT= .20
+FINAL_VERIFY_PERCENT= .30
 
 import math
 ### Start
@@ -927,8 +927,14 @@ def analyze_dataset(clips, test_data, early=False):
                 seiz_count+=1
 
 
-    final_validate = clips[-FINAL_VERIFY_SIZE:] + unique_clips
-    clips = clips[:-FINAL_VERIFY_SIZE]
+    final_validate = [c for c in clips[-FINAL_VERIFY_SIZE:] if c.seizure == 0]
+    clips = [c for c in clips if not c in final_validate]
+
+
+    print "One out size", len(clips), len(final_validate)
+
+    final_validate+=unique_clips
+    print "With other seizure", len(clips), len(final_validate)
 
 
 
