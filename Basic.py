@@ -605,7 +605,7 @@ def organize_master_data(predictions, seizure_cv, cv_universal):
 
     #print "org mast", len(predictions[0]), len(cv_universal)
 
-    for i in xrange(len(predictions[0])): #for every .mat
+    for i in xrange(len(seizure_cv)): #for every .mat
         toadd = []
         for category in xrange(len(predictions)): #for every metafeature prediction set added to predictions
             v = predictions[category][i]
@@ -633,9 +633,9 @@ def organize_master_data(predictions, seizure_cv, cv_universal):
 
     num_valid = int(-(.2*len(feature_layer)))
     feature_layer_valid = feature_layer[-num_valid:]
-    feature_layer_train = feature_layer[:-num_valid]
+    feature_layer_train = feature_layer
     seizure_cv_valid = seizure_cv[-num_valid:]
-    seizure_cv_train = seizure_cv[:-num_valid]
+    seizure_cv_train = seizure_cv
 
 
     return ( feature_layer_train, seizure_cv_train)
