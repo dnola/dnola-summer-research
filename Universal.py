@@ -388,27 +388,28 @@ def generate_layer_2_dict(subject_list):
     valid = []
     valid_class = []
 
-    print "generating second half"
-    (layer_2_features,layer_2_classes,layer_2_ids, layer_2_uids) = generate_second_layer(results, ids_class[:][::2], names[:][::2], classes[:][::2], uids[:][::2])
+    # print "generating second half"
+    # (layer_2_features,layer_2_classes,layer_2_ids, layer_2_uids) = generate_second_layer(results, ids_class[:][::2], names[:][::2], classes[:][::2], uids[:][::2])
+    #
+    # second = layer_2_features
+    # second_ids = layer_2_ids
+    #
+    #
+    #
+    # #print names_tgt
 
-    second = layer_2_features
-    second_ids = layer_2_ids
-
-
-
-    #print names_tgt
     print "generating target layer"
     (layer_2_features_tgt,layer_2_classes_tgt,layer_2_ids_tgt, layer_2_uids_tgt) = generate_second_layer(results_tgt, ids_class_tgt, names_tgt, classes_tgt, uids_tgt)
 
-    print "lengths: ", len(first.keys()), len(second.keys())
-
-    for k in second.keys():
-        try:
-            first[k]+=second[k]
-        except:
-            first[k] = second[k]
-
-    first_ids.update(second_ids)
+    # print "lengths: ", len(first.keys()), len(first.keys())
+    #
+    # for k in second.keys():
+    #     try:
+    #         first[k]+=second[k]
+    #     except:
+    #         first[k] = second[k]
+    #
+    # first_ids.update(second_ids)
 
     print "transforming layer"
     for k in sorted(first.keys()):

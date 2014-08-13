@@ -285,9 +285,12 @@ def initialize_model_data(feat, a, clips):
             #print c.features.keys()
             #del c.features['universal_lower']
             fit.append(c.features[feat])
-            #print "done"
+            print "done", c.name, c.features
         except:
+            print "dropping", c.name, c.features
             todel_fit.append(cur)
+
+
 
     todel_cv = []
     counter = itertools.count()
@@ -298,8 +301,9 @@ def initialize_model_data(feat, a, clips):
             #del c.features['universal_lower']
             cv.append(c.features[feat])
             cv_universal.append(c.features['universal_lower'])
-            #print "done"
+            print "done", c.name, c.features
         except:
+            print "dropping", c.name, c.features
             todel_cv.append(cur)
 
 
