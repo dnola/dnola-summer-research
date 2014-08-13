@@ -307,7 +307,7 @@ def initialize_model_data(feat, a, clips):
             todel_cv.append(cur)
 
 
-    #print len(fit), len(cv), len(cv_universal)
+    print len(fit), len(cv), len(cv_universal)
     return (clf, fit, cv, cv_universal, todel_fit, todel_cv)
 
 
