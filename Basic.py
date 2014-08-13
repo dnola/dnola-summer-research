@@ -269,7 +269,7 @@ def initialize_model_state(a):
 
     return clf
 
-def initialize_model_data(feat, a, clips):
+def initialize_model_data(feat, a, clips, cv_only = False):
     print "", feat, a[0].__name__, a[1]
 
     clf = initialize_model_state(a)
@@ -284,8 +284,9 @@ def initialize_model_data(feat, a, clips):
         try:
             #print c.features.keys()
             #del c.features['universal_lower']
-            fit.append(c.features[feat])
-            print "done", c.name, c.features
+            if not cv_only:
+                fit.append(c.features[feat])
+                print "done", c.name, c.features
         except:
             print "dropping", c.name, c.features
             todel_fit.append(cur)
@@ -299,7 +300,8 @@ def initialize_model_data(feat, a, clips):
         try:
 
             #del c.features['universal_lower']
-            cv.append(c.features[feat])
+            if not cv_only:
+                cv.append(c.features[feat])
             cv_universal.append(c.features['universal_lower'])
             print "done", c.name, c.features
         except:
@@ -308,6 +310,10 @@ def initialize_model_data(feat, a, clips):
 
 
     print len(fit), len(cv), len(cv_universal)
+
+    if cv_only:
+        return cv_universal
+
     return (clf, fit, cv, cv_universal, todel_fit, todel_cv)
 
 
@@ -340,6 +346,10 @@ def train_slave(clips, final_validate):
     classifiers = []
     pool = VisiblePool(8)
     cv_universal = None
+
+    cv_universal = initialize_model_data(None, None, clips[:], True)
+
+
     for feat, a in itertools.product(keylist, algorithms[:]):
             if 'universal_lower' in feat:
                 continue
