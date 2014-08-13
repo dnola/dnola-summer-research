@@ -628,7 +628,7 @@ def organize_master_data(predictions, seizure_cv, cv_universal):
                 toadd.append(0)
 
 
-        print toadd
+        #print toadd
         feature_layer.append(toadd)
 
     print "here", len(feature_layer), len(cv_universal)
