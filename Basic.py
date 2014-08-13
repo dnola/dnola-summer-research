@@ -303,7 +303,7 @@ def initialize_model_data(feat, a, clips, cv_only = False):
             if not cv_only:
                 cv.append(c.features[feat])
             cv_universal.append(c.features['universal_lower'])
-            print "done", c.name, c.features
+            #rint "done", c.name, c.features
         except:
             print "dropping", c.name, c.features
             todel_cv.append(cur)
