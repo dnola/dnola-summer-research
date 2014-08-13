@@ -270,7 +270,7 @@ def initialize_model_state(a):
     return clf
 
 def initialize_model_data(feat, a, clips, cv_only = False):
-    print "", feat, a[0].__name__, a[1]
+    #print "", feat, a[0].__name__, a[1]
 
     clf = initialize_model_state(a)
     fit = []
