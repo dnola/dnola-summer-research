@@ -312,7 +312,7 @@ def initialize_model_data(feat, a, clips):
 
 
 def fit_this(clf, fit, seizure_fit, cv, feat):
-    print "Starting fit..."
+    print "Starting fit... "
 
     #print len(fit), len(seizure_fit)
     clf.fit(fit, seizure_fit)
