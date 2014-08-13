@@ -215,9 +215,9 @@ models_small = [
 
 models_micro = [
             [sklearn.ensemble.RandomForestClassifier ,{'n_estimators': 300}                                  ],
-            [sklearn.neighbors.KNeighborsClassifier ,{'n_neighbors': 5}                                      ],
-            [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .3, 'tol':0.0000001}  ],
-            [PassthroughModel, {}]
+            # [sklearn.neighbors.KNeighborsClassifier ,{'n_neighbors': 5}                                      ],
+            # [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .3, 'tol':0.0000001}  ],
+            # [PassthroughModel, {}]
 
                     ]
 
