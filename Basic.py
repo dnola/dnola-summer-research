@@ -272,7 +272,9 @@ def initialize_model_state(a):
 def initialize_model_data(feat, a, clips, cv_only = False):
     #print "", feat, a[0].__name__, a[1]
 
-    clf = initialize_model_state(a)
+    clf = []
+    if not cv_only:
+        clf = initialize_model_state(a)
     fit = []
     cv = []
     cv_universal = []
