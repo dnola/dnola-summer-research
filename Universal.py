@@ -15,7 +15,7 @@ from operator import itemgetter
 from random import shuffle
 import random
 import sys
-
+import os
 
 SEED = 3737
 
@@ -25,8 +25,16 @@ class UniversalSegment:
     def __init__(self):
         pass
 
+NUM_EST = 100
+try:
+    NUM_EST = int(os.environ['Estimator_Count'])
+except Exception as e:
+    print e.message
+    print "USING DEFAULT ESTIMATOR COUNT OF 100"
+    NUM_EST = 100
 
 SUBJECTS = ['Dog_1','Dog_2','Dog_3','Dog_4','Patient_1','Patient_2','Patient_3','Patient_4','Patient_5','Patient_6','Patient_7','Patient_8']
+
 
 
 one_hots = {}
@@ -360,7 +368,7 @@ def generate_layer_2_dict(subject_list):
     valid_class = classes[1:][::2]
 
 
-    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 500, n_jobs = 8, verbose = 1, random_state=SEED)
+    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = NUM_EST, n_jobs = 8, verbose = 1, random_state=SEED)
     print "Fitting forests..."
     clf.fit(fit, fit_class)
     results =  clf.predict_proba(valid)
@@ -379,7 +387,7 @@ def generate_layer_2_dict(subject_list):
     valid = train[:][::2]
     valid_class = classes[:][::2]
 
-    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 500, n_jobs = 8, verbose = 1, random_state=SEED)
+    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = NUM_EST, n_jobs = 8, verbose = 1, random_state=SEED)
     print "Fitting forests..."
     clf.fit(fit, fit_class)
     results =  clf.predict_proba(valid)
