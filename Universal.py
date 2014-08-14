@@ -26,8 +26,11 @@ class UniversalSegment:
         pass
 
 NUM_EST = 100
+NUM_EST = os.environ['Estimator_Count']
 try:
-    NUM_EST = int(os.environ['Estimator_Count'])
+    NUM_EST = os.environ['Estimator_Count']
+    print NUM_EST
+    NUM_EST = int(NUM_EST)
 except Exception as e:
     print e.message
     print "USING DEFAULT ESTIMATOR COUNT OF 100"
