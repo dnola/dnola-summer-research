@@ -26,7 +26,7 @@ class UniversalSegment:
         pass
 
 NUM_EST = 100
-NUM_EST = os.environ['Estimator_Count']
+#NUM_EST = os.environ['Estimator_Count']
 try:
     NUM_EST = os.environ['Estimator_Count']
     print NUM_EST
