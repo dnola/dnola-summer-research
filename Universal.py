@@ -360,7 +360,7 @@ def generate_layer_2_dict(subject_list):
     valid_class = classes[1:][::2]
 
 
-    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 120, n_jobs = 8, verbose = 1, random_state=SEED)
+    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 500, n_jobs = 8, verbose = 1, random_state=SEED)
     print "Fitting forests..."
     clf.fit(fit, fit_class)
     results =  clf.predict_proba(valid)
@@ -379,7 +379,7 @@ def generate_layer_2_dict(subject_list):
     valid = train[:][::2]
     valid_class = classes[:][::2]
 
-    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 120, n_jobs = 8, verbose = 1, random_state=SEED)
+    clf = sklearn.ensemble.RandomForestClassifier(n_estimators = 500, n_jobs = 8, verbose = 1, random_state=SEED)
     print "Fitting forests..."
     clf.fit(fit, fit_class)
     results =  clf.predict_proba(valid)
