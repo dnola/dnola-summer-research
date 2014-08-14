@@ -127,6 +127,10 @@ def preprocess_subject(subject):
 
     for t in train_data:
         print t.features
+        print t.name
+        print t.latency
+
+
     print "wait ", subject
     #cPickle.dump(train_data, open("/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+subject+'.jpkl', 'wb'),compress = 0, cache_size=1000)
     joblib.dump(train_data, "/Users/davidnola/PyCharm/dnola-summer-research-new/Universal/"+subject+'.jpkl',compress = 0, cache_size=1000)
@@ -443,12 +447,15 @@ def generate_layer_2_dict(subject_list):
     return first # PROBLEM: We need a dict of EVERYTHING on this layer - no wait - should skip ones we dont have
 
 if __name__ == '__main__':
+
+    preprocess_subject('Dog_1')
+
     #     pass
     #data = fit_random_forests(SUBJECTS[:])
     #write_output(data)
 
     #print generate_layer_1_dict(SUBJECTS[0:1])
-    generate_layer_2_dict(SUBJECTS[2:3])
+    #generate_layer_2_dict(SUBJECTS[2:3])
 
     print "DONE"
 

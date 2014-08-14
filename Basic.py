@@ -288,7 +288,7 @@ def initialize_model_data(feat, a, clips, cv_only = False):
             #del c.features['universal_lower']
             if not cv_only:
                 fit.append(c.features[feat])
-                print "done", c.name, c.features
+                #print "done", c.name, c.features
         except:
             print "dropping", c.name, c.features
             todel_fit.append(cur)
@@ -364,7 +364,7 @@ def train_slave(clips, final_validate):
                     del seizure_cv[t]
 
 
-            print feat, a, len(cv)
+            #print feat, a, len(cv)
             try:
 
                 result = pool.apply_async(fit_this, (clf,fit,seizure_fit,cv, feat,))
@@ -464,6 +464,10 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
     auc_list=[]
     best_sc = 0
     best_auc = 0
+    #metafeatures.append((None,None))
+    #predictions.append([])
+
+
     for x in xrange(len(predictions)):
         print "Model Number: ", x
         best_meta=None
@@ -531,6 +535,8 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
                 print "OBTAINED RESULTS:", meta_model.__class__.__name__, "REMAINING: ", len(meta_results)-1, "AUC:", auc
                 sys.stdout.flush()
 
+                #auc = sc = auc*sc*.1
+
                 if (auc > best_auc*1.05) or (auc>best_auc and sc > best_sc * .85) or (auc==best_auc and sc>best_sc):
                     print "NEW BEST:", meta_name, sc, auc
                     best_sc = sc
@@ -563,6 +569,14 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
             print len(metafeatures)
 
         if best_meta == None:
+            print "pure master:"
+            (sc, auc, name, meta_model, meta_name, pred, best_feats) = calc_results([],seizure_cv[:],[],final_validate[:],None, None, [], cv_universal[:])
+            if auc>best_auc:
+                print "NEW BEST PURE:", meta_name, sc, auc
+                score_list = [sc]
+                auc_list = [auc]
+                toret_pred = []
+                toret_meta= [("NO METAFEATURES",None)]
             break
 
     print "Done choosing metafeatures"
@@ -660,7 +674,7 @@ def run_master_proc(clf_layer, feature_layer_train, seizure_cv_train):
 def train_master(predictions, seizure_cv, final_validate_layer, final_validate_actual, cv_universal):
 
 
-    print "training master"
+    #print "training master"
     sys.stdout.flush()
     ( feature_layer_train, seizure_cv_train) = organize_master_data(predictions[:], seizure_cv, cv_universal)
 
@@ -689,7 +703,7 @@ def train_master(predictions, seizure_cv, final_validate_layer, final_validate_a
     #print master_algos
     #pool = mp.Pool(8)
     for a in master_algos:
-        print "Master train:", a
+        #print "Master train:", a
         clf = None
         temp = None
 
@@ -706,7 +720,7 @@ def train_master(predictions, seizure_cv, final_validate_layer, final_validate_a
         result = run_master_proc(clf_layer, feature_layer_train, seizure_cv_train)
 
         possible_master_results.append(result)
-        print "done"
+        #print "done"
 
 
 
@@ -781,6 +795,8 @@ def generate_test_layer(test_data, metafeatures):
     #         formatted_data.append(toadd)
 
     for feat,mod in metafeatures:
+        if feat == "NO METAFEATURES":
+            continue
         toadd = []
         for c in test_data:
             toadd.append(c.features[feat])
@@ -1091,8 +1107,8 @@ if __name__ == '__main__':
 
 
     #algorithms = ModelList.models_new_short
-    algorithms =  ModelList.models_small
-    #algorithms =  ModelList.models_micro
+    #algorithms =  ModelList.models_small
+    algorithms =  ModelList.models_micro
 
     multi_proc_mode = False
 
