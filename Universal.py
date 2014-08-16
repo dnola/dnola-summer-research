@@ -373,12 +373,14 @@ def generate_layer_2_dict(subject_list):
 
     clf = sklearn.ensemble.RandomForestClassifier(n_estimators = NUM_EST, n_jobs = 8, verbose = 1, random_state=SEED)
     print "Fitting forests..."
+    sys.stdout.flush()
     clf.fit(fit, fit_class)
     results =  clf.predict_proba(valid)
     results_tgt =  clf.predict_proba(target)
     print "SCORE:", clf.score(valid, valid_class)
 
     print "generating first half"
+    sys.stdout.flush()
     (layer_2_features,layer_2_classes,layer_2_ids, layer_2_uids) = generate_second_layer(results, ids_class[1:][::2], names[1:][::2], classes[1:][::2], uids[1:][::2])
 
     first = layer_2_features
@@ -392,10 +394,12 @@ def generate_layer_2_dict(subject_list):
 
     clf = sklearn.ensemble.RandomForestClassifier(n_estimators = NUM_EST, n_jobs = 8, verbose = 1, random_state=SEED)
     print "Fitting forests..."
+    sys.stdout.flush()
     clf.fit(fit, fit_class)
     results =  clf.predict_proba(valid)
     results_tgt =  clf.predict_proba(target)
     print "SCORE:", clf.score(valid, valid_class)
+    sys.stdout.flush()
 
     train = []
     fit = []
@@ -414,6 +418,7 @@ def generate_layer_2_dict(subject_list):
     # #print names_tgt
 
     print "generating target layer"
+    sys.stdout.flush()
     (layer_2_features_tgt,layer_2_classes_tgt,layer_2_ids_tgt, layer_2_uids_tgt) = generate_second_layer(results_tgt, ids_class_tgt, names_tgt, classes_tgt, uids_tgt)
 
     # print "lengths: ", len(first.keys()), len(first.keys())
@@ -427,6 +432,7 @@ def generate_layer_2_dict(subject_list):
     # first_ids.update(second_ids)
 
     print "transforming layer"
+    sys.stdout.flush()
     for k in sorted(first.keys()):
         v = first[k]
         #print [layer_2_classes[k]], layer_2_ids[k]
@@ -440,6 +446,7 @@ def generate_layer_2_dict(subject_list):
         first[k] = [np.min(v), np.max(v), np.mean(v), np.var(v)] + first_ids[k]
 
     print "Target data transform:"
+    sys.stdout.flush()
     for k in sorted(layer_2_features_tgt.keys()):
         #print k
         v = layer_2_features_tgt[k]
@@ -454,6 +461,9 @@ def generate_layer_2_dict(subject_list):
 
 
     first.update(layer_2_features_tgt)
+
+    print "DONE LAYER 2 DICT"
+    sys.stdout.flush()
 
     return first # PROBLEM: We need a dict of EVERYTHING on this layer - no wait - should skip ones we dont have
 
