@@ -550,6 +550,7 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
                 del meta_results[d]
 
 
+
         if best_meta!=None:
             score_list.append(best_sc)
             auc_list.append(best_auc)
@@ -566,7 +567,16 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
             toret_meta.append(best_meta)
             toret_pred.append(best_pred)
             print "top ",x , " : ", nn, "sc", best_sc, "auc", best_auc
+
+
+
+
             print len(metafeatures)
+
+
+        #TEMP Cut off extra layer additions
+        meta_results = []
+        best_meta = None
 
         if best_meta == None:
             print "pure master:"
