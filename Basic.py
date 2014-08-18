@@ -575,8 +575,8 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
 
 
         #TEMP Cut off extra layer additions
-        meta_results = []
-        best_meta = None
+        # meta_results = []
+        # best_meta = None
 
         if best_meta == None:
             print "pure master:"
@@ -703,7 +703,8 @@ def train_master(predictions, seizure_cv, final_validate_layer, final_validate_a
     best = 0
 
     possible_master_results = []
-    master_algos = algorithms[:]
+    #master_algos = algorithms[:]
+    master_algos = ModelList.models_micro[:]
 
 
 
