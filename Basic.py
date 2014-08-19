@@ -238,7 +238,7 @@ def setup_validation_data(clips):
     seizure_cv = []
     for c in clips[::2]:
         if c.seizure:
-            seizure_fit.append(1.0)
+            seizure_fit.append(1.0)c
         else:
             seizure_fit.append(0.0)
 
@@ -350,7 +350,7 @@ def initialize_model_data(feat, a, clips, cv_only = False):
 
 
     #REMOVE
-    cv_universal = [[0]*len(cv_universal[0])] * len(cv_universal)
+    #cv_universal = [[0]*len(cv_universal[0])] * len(cv_universal)
     return (clf, fit, cv, cv_universal, todel_fit, todel_cv)
 
 
@@ -516,7 +516,8 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
     #predictions.append([])
 
 
-    for x in xrange(len(predictions)):
+    #for x in xrange(len(predictions)):
+    for x in xrange(3):
         print "Model Number: ", x
         best_meta=None
         best_pred=None
