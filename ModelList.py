@@ -220,7 +220,7 @@ models_small = [
 
 models_micro = [
             [sklearn.ensemble.RandomForestClassifier ,{'n_estimators': 30}                                  ],
-            [nolearn.dbn, {   'learn_rates':0.1, 'learn_rate_decays':0.95,'epochs':50,'verbose':0, }]#, 'epochs_pretrain':30, 'learn_rates_pretrain': .005}   ]
+            [nolearn.dbn, {   'learn_rates':.1, 'learn_rate_decays':0.95,'epochs':100,'verbose':1, 'learn_rates_pretrain':.0001, 'minibatch_size':256 }]#, 'epochs_pretrain':30, 'learn_rates_pretrain': .005}   ]
             # [sklearn.neighbors.KNeighborsClassifier ,{'n_neighbors': 5}                                      ],
             # [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .3, 'tol':0.0000001}  ],
             # [PassthroughModel, {}]
@@ -228,7 +228,7 @@ models_micro = [
                     ]
 models_master = [
             [sklearn.ensemble.RandomForestClassifier ,{'n_estimators': 30}                                  ],
-            [nolearn.dbn, {   'learn_rates':0.1, 'learn_rate_decays':0.95,'epochs':50,'verbose':0, }]
+            [nolearn.dbn, {   'learn_rates':.1, 'learn_rate_decays':0.95,'epochs':100,'verbose':0, 'learn_rates_pretrain':.0001, 'minibatch_size':256 }]
             # [sklearn.neighbors.KNeighborsClassifier ,{'n_neighbors': 5}                                      ],
             # [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .3, 'tol':0.0000001}  ],
             # [PassthroughModel, {}]

@@ -231,6 +231,8 @@ def append_predictions(preds):
 
     print "done appending"
 
+
+
 def setup_validation_data(clips):
     seizure_fit = []
     seizure_cv = []
@@ -250,6 +252,21 @@ def setup_validation_data(clips):
 
 import gdbn.activationFunctions
 
+def msq_err(targets, outputs):
+    #print targets, outputs
+    try:
+        targets = targets.as_numpy_array()
+    except:
+        targets = np.array(targets)
+    try:
+        outputs = outputs.as_numpy_array()
+    except:
+        outputs = np.array(outputs)
+
+    toret = np.sum((targets - outputs)**2)
+    return toret #np.sum(outputs.argmax(1) != targets.argmax(1))
+
+
 def initialize_model_state(a, feature_size = None):
     clf = None
     temp = None
@@ -259,7 +276,8 @@ def initialize_model_state(a, feature_size = None):
     print a[0].__name__, feature_size
     if 'nolearn.dbn' in a[0].__name__:
         a[1]['output_act_funct'] = gdbn.activationFunctions.Sigmoid()
-        clf = DBN([-1,100,  -1], **a[1])
+        a[1]['loss_funct'] = msq_err
+        clf = DBN([-1,50,  -1], **a[1])
         return clf
 
     if not 'KNeighborsClassifier' in a[0].__name__ and not 'GradientBoostingClassifier' in a[0].__name__:
@@ -1166,7 +1184,7 @@ if __name__ == '__main__':
 
     #algorithms = ModelList.models_new_short
     #algorithms =  ModelList.models_small
-    #algorithms =  ModelList.models_micro
+    algorithms =  ModelList.models_micro
 
     multi_proc_mode = False
 
