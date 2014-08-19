@@ -4,6 +4,9 @@ from sklearn import *
 from sklearn import ensemble
 import MultilayerPerceptron
 from PassthroughModel import PassthroughModel
+import nolearn
+from nolearn.dbn import DBN
+
 models_new_short = [ #PUT IT IN ORDER OF IMPORTANCE
                 #[MultilayerPerceptron.MultilayerPerceptronManager ,{}   #                                     ],
 
@@ -59,6 +62,8 @@ models_new_short = [ #PUT IT IN ORDER OF IMPORTANCE
                 [linear_model.LogisticRegression, {'penalty' : 'l1', 'C': .003, 'tol':0.0000001}  ],
                 [linear_model.LogisticRegression, {'penalty' : 'l1', 'C': .3, 'tol':0.0000001}  ],
                 [linear_model.LogisticRegression, {'penalty' : 'l1', 'C': .0003, 'tol':0.0000001}  ],
+
+                [DBN, {}  ]
 
                 ]#END
 
@@ -214,14 +219,19 @@ models_small = [
                     ]
 
 models_micro = [
-            [sklearn.ensemble.RandomForestClassifier ,{'n_estimators': 300}                                  ],
+            [sklearn.ensemble.RandomForestClassifier ,{'n_estimators': 30}                                  ],
+            [nolearn.dbn, {   'learn_rates':0.1, 'learn_rate_decays':0.95,'epochs':50,'verbose':0, }]#, 'epochs_pretrain':30, 'learn_rates_pretrain': .005}   ]
+            # [sklearn.neighbors.KNeighborsClassifier ,{'n_neighbors': 5}                                      ],
+            # [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .3, 'tol':0.0000001}  ],
+            # [PassthroughModel, {}]
+
+                    ]
+models_master = [
+            [sklearn.ensemble.RandomForestClassifier ,{'n_estimators': 30}                                  ],
+            [nolearn.dbn, {   'learn_rates':0.1, 'learn_rate_decays':0.95,'epochs':50,'verbose':0, }]
             # [sklearn.neighbors.KNeighborsClassifier ,{'n_neighbors': 5}                                      ],
             # [linear_model.LogisticRegression, {'penalty' : 'l2', 'C': .3, 'tol':0.0000001}  ],
             # [PassthroughModel, {}]
 
                     ]
 
-models_MLP = [
-                    [MultilayerPerceptron.MultilayerPerceptronManager ,{}                                       ],
-
-                    ]

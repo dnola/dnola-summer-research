@@ -26,10 +26,14 @@ from sklearn import ensemble
 import operator
 import MultilayerPerceptron
 from VisiblePool import VisiblePool
-
+import nolearn
+from nolearn.dbn import DBN
 SEED = 3737
 
 random.seed(SEED)
+
+nolearn.dbn.np.random.seed(3737)
+
 
 class timeout:
     def __init__(self, seconds=1, error_message='Timeout'):
@@ -244,11 +248,19 @@ def setup_validation_data(clips):
 
     return (seizure_fit, seizure_cv)
 
+import gdbn.activationFunctions
 
-
-def initialize_model_state(a):
+def initialize_model_state(a, feature_size = None):
     clf = None
     temp = None
+
+
+
+    print a[0].__name__, feature_size
+    if 'nolearn.dbn' in a[0].__name__:
+        a[1]['output_act_funct'] = gdbn.activationFunctions.Sigmoid()
+        clf = DBN([-1,100,  -1], **a[1])
+        return clf
 
     if not 'KNeighborsClassifier' in a[0].__name__ and not 'GradientBoostingClassifier' in a[0].__name__:
         try:
@@ -272,9 +284,7 @@ def initialize_model_state(a):
 def initialize_model_data(feat, a, clips, cv_only = False):
     #print "", feat, a[0].__name__, a[1]
 
-    clf = []
-    if not cv_only:
-        clf = initialize_model_state(a)
+
     fit = []
     cv = []
     cv_universal = []
@@ -316,12 +326,25 @@ def initialize_model_data(feat, a, clips, cv_only = False):
     if cv_only:
         return cv_universal
 
+    clf = []
+    clf = initialize_model_state(a, len(cv[0]))
+    clf.feat = feat
+
+
+    #REMOVE
+    cv_universal = [[0]*len(cv_universal[0])] * len(cv_universal)
     return (clf, fit, cv, cv_universal, todel_fit, todel_cv)
 
 
 def fit_this(clf, fit, seizure_fit, cv, feat):
     print "Starting fit... "
 
+
+    fit = np.array(fit)
+    print fit
+
+    print len(fit[0])
+    seizure_fit = np.array(seizure_fit)
     #print len(fit), len(seizure_fit)
     clf.fit(fit, seizure_fit)
     #print "done!"
@@ -365,17 +388,21 @@ def train_slave(clips, final_validate):
 
 
             #print feat, a, len(cv)
-            try:
+            # try:
+            #
+            #     result = pool.apply_async(fit_this, (clf,fit,seizure_fit,cv, feat,))
+            #     result = fit_this(clf,fit,seizure_fit,cv, feat)
+            #
+            #     classifiers.append(result)
+            # except mp.TimeoutError:
+            #     print "TIMED OUT"
+            #     #exit()
+            # except Exception as e:
+            #     print "OTHER ERROR OCCURRED: ", e.message
 
-                result = pool.apply_async(fit_this, (clf,fit,seizure_fit,cv, feat,))
-                #result = fit_this(clf,fit,seizure_fit,cv, feat)
+            result = fit_this(clf,fit,seizure_fit,cv, feat)
 
-                classifiers.append(result)
-            except mp.TimeoutError:
-                print "TIMED OUT"
-                #exit()
-            except Exception as e:
-                print "OTHER ERROR OCCURRED: ", e.message
+            classifiers.append(result)
 
 
             # result = fit_this(clf,fit,seizure_fit,cv, feat)
@@ -394,23 +421,25 @@ def train_slave(clips, final_validate):
 
 
 
-            try:
-                (clf, cv, feat) = classifiers[clf_idx].get(False)
-                print "READY: ", clf.__class__.__name__, " REMAINING: ", len(classifiers)-1
-
-            except Exception as e:
-                if len(str(e))>2:
-                    print e
-                continue
+            # try:
+            #     (clf, cv, feat) = classifiers[clf_idx].get(False)
+            #     print "READY: ", clf.__class__.__name__, " REMAINING: ", len(classifiers)-1
+            #
+            # except Exception as e:
+            #     if len(str(e))>2:
+            #         print e
+            #     continue
             #
             #
-            # (clf, cv, feat, cv_universal) = fit_this(clf,fit,seizure_fit,cv, feat,cv_universal)
+            (clf, cv, feat) = classifiers[clf_idx]
 
             #print "READY: ", clf.__class__.__name__, " REMAINING: ", len(classifiers)-1
 
             #print "cvlen" , len(cv)
 
             models.append(clf)
+
+            cv = np.array(cv)
 
             predict = None
             try:
@@ -430,7 +459,8 @@ def train_slave(clips, final_validate):
                 final_feats.append(f.features[feat])
                 final_seiz.append(f.seizure)
 
-            print "Independent AUC", score_model(final_seiz, final_feats, clf)
+            final_feats = np.array(final_feats)
+            print clf.feat, clf.__class__.__name__,"Independent AUC", score_model(final_seiz, final_feats, clf)
 
             metafeatures.append((feat, clf))
             predictions.append(predict)
@@ -579,14 +609,14 @@ def generate_best_first_layer(predictions,metafeatures, seizure_cv, final_valida
         # best_meta = None
 
         if best_meta == None:
-            print "pure master:"
-            (sc, auc, name, meta_model, meta_name, pred, best_feats) = calc_results([],seizure_cv[:],[],final_validate[:],None, None, [], cv_universal[:])
-            if auc>best_auc:
-                print "NEW BEST PURE:", meta_name, sc, auc
-                score_list = [sc]
-                auc_list = [auc]
-                toret_pred = []
-                toret_meta= [("NO METAFEATURES",None)]
+            # print "pure master:"
+            # (sc, auc, name, meta_model, meta_name, pred, best_feats) = calc_results([],seizure_cv[:],[],final_validate[:],None, None, [], cv_universal[:])
+            # if auc>best_auc:
+            #     print "NEW BEST PURE:", meta_name, sc, auc
+            #     score_list = [sc]
+            #     auc_list = [auc]
+            #     toret_pred = []
+            #     toret_meta= [("NO METAFEATURES",None)]
             break
 
     print "Done choosing metafeatures"
@@ -655,7 +685,7 @@ def organize_master_data(predictions, seizure_cv, cv_universal):
         #print toadd
         feature_layer.append(toadd)
 
-    print "here", len(feature_layer), len(cv_universal)
+    #print "here", len(feature_layer), len(cv_universal)
 
     for x in xrange(len(feature_layer)):
         feature_layer[x]+=cv_universal[x]
@@ -678,6 +708,9 @@ def organize_master_data(predictions, seizure_cv, cv_universal):
 
 
 def run_master_proc(clf_layer, feature_layer_train, seizure_cv_train):
+
+    feature_layer_train = np.array(feature_layer_train)
+    seizure_cv_train = np.array(seizure_cv_train)
     clf_layer.fit(feature_layer_train, seizure_cv_train)
     return clf_layer
 
@@ -704,7 +737,7 @@ def train_master(predictions, seizure_cv, final_validate_layer, final_validate_a
 
     possible_master_results = []
     #master_algos = algorithms[:]
-    master_algos = ModelList.models_micro[:]
+    master_algos = ModelList.models_master[:]
 
 
 
@@ -760,7 +793,7 @@ def train_master(predictions, seizure_cv, final_validate_layer, final_validate_a
 
             score = score_model(final_validate_actual, final_validate_layer, clf_layer)
 
-            #print "Current master: ", score, clf_layer.__class__.__name__
+            print "Current master: ", score, clf_layer.__class__.__name__
             if score>best:
                 #print "New best master: ", score, a[0].__name__, a[1]
                 best_clf = clf_layer
@@ -813,8 +846,11 @@ def generate_test_layer(test_data, metafeatures):
             toadd.append(c.features[feat])
 
 
+        toadd = np.array(toadd)
+        #print "toadd", toadd
         try:
             try:
+
                 toret.append([a[1] for a in mod.predict_proba(toadd)])
             except:
                 toret.append(mod.predict(toadd))
@@ -851,6 +887,8 @@ def generate_test_layer(test_data, metafeatures):
         #print toadd
         #print "next"
 
+    #print "final", final
+
     uni_iter = iter(test_data)
     for f in final:
         cur = uni_iter.next()
@@ -860,7 +898,8 @@ def generate_test_layer(test_data, metafeatures):
     #    print f
     #print "done generating test layer"
     sys.stdout.flush()
-    
+
+    final = np.array(final)
     return (final, metafeatures)
 
 def generate_validation_results(data):
@@ -880,6 +919,8 @@ def final_score(final_validate, clf_layer, metafeatures, best_feats):
 
     #print "OLD SCORE: ", clf_layer_lin.score(final_feature_layer_check, final_validation_results)
 
+    final_feature_layer_check = np.array(final_feature_layer_check)
+    final_validation_results = np.array(final_validation_results)
     sc = clf_layer.score(final_feature_layer_check, final_validation_results)
     #print "SCORE: ", sc
 
@@ -888,11 +929,17 @@ def final_score(final_validate, clf_layer, metafeatures, best_feats):
 def score_model(actual, feature_set, clf_layer):
     from sklearn.metrics import roc_curve, auc
     fpr, tpr, thresholds = None, None, None
+    feature_set = np.array(feature_set)
+    #print feature_set
     try:
         fpr, tpr, thresholds = roc_curve(actual, clf_layer.predict_proba(feature_set)[:, 1])
     except:
         fpr, tpr, thresholds = roc_curve(actual, clf_layer.predict(feature_set))
     roc_auc = auc(fpr, tpr)
+    if roc_auc<.5:
+        fpr, tpr, thresholds = roc_curve(actual, [1-a for a in clf_layer.predict(feature_set)])
+        roc_auc = auc(fpr, tpr)
+
     #print "Area under the ROC curve : %f" % roc_auc
 
     return roc_auc
@@ -1119,7 +1166,7 @@ if __name__ == '__main__':
 
     #algorithms = ModelList.models_new_short
     #algorithms =  ModelList.models_small
-    algorithms =  ModelList.models_micro
+    #algorithms =  ModelList.models_micro
 
     multi_proc_mode = False
 
