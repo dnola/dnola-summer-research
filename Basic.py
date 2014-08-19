@@ -238,7 +238,7 @@ def setup_validation_data(clips):
     seizure_cv = []
     for c in clips[::2]:
         if c.seizure:
-            seizure_fit.append(1.0)c
+            seizure_fit.append(1.0)
         else:
             seizure_fit.append(0.0)
 
