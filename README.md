@@ -18,9 +18,10 @@ The problem then, is to take a set of unlabeled clips, determine whether they si
 
 
 OVERVIEW:
+
 Consists of two primary components:
 
 1. Python Codebase
 2. Jenkins Job Configurations
 
-
+The Jenkins job configurations are wrappers around the Python scripts. These jobs serve to manage intermediate data, feature sets, and solution sets - as well as managing the python processes and workload distribution. Additionally, Jenkins maintains a full log of builds, manages version control, and can automatically distribute work to Amazon EC2 nodes.
